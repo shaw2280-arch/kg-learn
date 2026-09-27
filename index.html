@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KG Learn - Cloud Audio Edition</title>
+  
+  <!-- استدعاء محرك نطق سحابي يعمل داخل أي APK بنسبة 100% -->
+  <script src="https://code.responsivevoice.org/responsivevoice.js?key=free"></script>
+
+  <style>
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; margin: 0; padding: 0; }
+    body, html {
+      width: 100%; height: 100%; overflow: hidden;
+      font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+      background: radial-gradient(circle, #fff9db 0%, #ffd8a8 100%);
+      text-align: center;
+    }
+    #welcome-screen {
+      position: fixed; inset: 0;
+      background: rgba(255, 243, 191, 0.98);
+      z-index: 999; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; padding: 20px;
+    }
+    .welcome-card {
+      background: #fff; border: 4px solid #ff922b;
+      border-radius: 25px; padding: 25px 15px; width: 90%; max-width: 360px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .level-btn {
+      width: 100%; margin: 10px 0; padding: 15px; border: none;
+      border-radius: 18px; font-size: 18px; font-weight: bold; color: white;
+      cursor: pointer; display: block; box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+      touch-action: manipulation;
+    }
+    .level-btn:active { transform: scale(0.96); }
+    .btn-kg1 { background: linear-gradient(45deg, #20c997, #099268); }
+    .btn-kg2 { background: linear-gradient(45deg, #ff6b6b, #e03131); }
+
+    #top-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 12px; background: #fff3bf; border-bottom: 2px solid #ffd43b;
+      font-size: 14px; font-weight: bold; color: #d9480f;
+    }
+    .btn-change {
+      background: #e8590c; color: white; border: none;
+      padding: 4px 10px; border-radius: 10px; font-size: 12px; cursor: pointer;
+    }
+
+    #categories-bar {
+      display: flex; overflow-x: auto; gap: 6px; padding: 6px;
+      background: #ffffffdd; white-space: nowrap; -webkit-overflow-scrolling: touch;
+    }
+    .cat-btn {
+      background: #f1f3f5; border: 2px solid #adb5bd; border-radius: 20px;
+      padding: 5px 11px; font-size: 12px; font-weight: bold; color: #495057; cursor: pointer;
+    }
+    .cat-btn.active {
+      background: #ff6b6b; border-color: #ff6b6b; color: white; transform: scale(1.05);
+    }
+
+    #items-bar {
+      display: flex; overflow-x: auto; padding: 6px 8px; gap: 8px;
+      background: #ffffff99; white-space: nowrap; -webkit-overflow-scrolling: touch;
+    }
+    .mini-item {
+      display: inline-block; min-width: 44px; height: 42px; line-height: 38px;
+      background: #fff; border: 2px solid #fd7e14; border-radius: 12px;
+      font-size: 18px; font-weight: bold; color: #e8590c; cursor: pointer; padding: 0 4px;
+    }
+    .mini-item.active { background: #e8590c; color: #fff; transform: scale(1.1); }
+
+    #stage-title { font-size: 15px; color: #d6336c; margin-top: 6px; font-weight: bold; }
+    #catch-counter { font-size: 13px; color: #4c6ef5; font-weight: bold; margin-top: 2px; }
+
+    #main-display {
+      position: absolute; top: 44%; left: 50%;
+      transform: translate(-50%, -50%); cursor: pointer;
+      display: flex; flex-direction: column; align-items: center;
+      transition: all 0.25s ease-out; z-index: 100;
+      touch-action: manipulation;
+    }
+    #main-char {
+      font-size: 100px; font-weight: bold; color: #3b5bdb;
+      text-shadow: 2px 4px 0 #fff; line-height: 1.1;
+    }
+    #main-sub {
+      font-size: 19px; font-weight: bold; color: #fa5252;
+      background: #ffffffdd; padding: 4px 16px; border-radius: 20px;
+      margin-top: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      white-space: nowrap;
+    }
+
+    #nav-controls {
+      position: fixed; bottom: 20px; width: 100%;
+      display: flex; justify-content: space-around; padding: 0 8px; z-index: 150;
+    }
+    .btn {
+      background: #12b886; color: white; border: none;
+      padding: 9px 14px; font-size: 14px; font-weight: bold;
+      border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer;
+      touch-action: manipulation;
+    }
+    .btn-spell { background: #fab005; color: #333; }
+    .btn-ai { background: linear-gradient(45deg, #7950f2, #be4bdb); }
+    .btn-nav { background: #4dabf7; }
+
+    #quiz-box {
+      display: none; position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); width: 88%; max-width: 340px;
+      background: white; border-radius: 25px; padding: 20px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3); border: 5px solid #ffd43b;
+      z-index: 1000;
+    }
+    .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+    .option-btn {
+      background: #0984e3; color: white; border: none; padding: 12px 6px;
+      font-size: 16px; border-radius: 15px; font-weight: bold; cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    #ai-modal {
+      display: none; position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); width: 90%; max-width: 360px;
+      background: #fff; border-radius: 25px; padding: 18px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 5px solid #be4bdb; z-index: 1001; text-align: right;
+    }
+    #ai-response {
+      max-height: 110px; overflow-y: auto; background: #f8f0fc; border-radius: 12px;
+      padding: 10px; font-size: 13px; color: #333; margin: 8px 0; line-height: 1.4;
+    }
+    .ai-btn { background: #be4bdb; color: white; border: none; padding: 7px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; cursor: pointer; margin: 2px; }
+  </style>
+</head>
+<body>
+
+  <div id="welcome-screen">
+    <div class="welcome-card">
+      <div style="font-size: 40px; margin-bottom: 5px;">🎒✨</div>
+      <h2 style="color: #2b8a3e; margin-bottom: 8px;">مرحبا بكم يا أبطال!</h2>
+      <p style="color: #555; font-size: 14px; margin-bottom: 15px;">اختر المرحلة لبدء التعلّم:</p>
+      <button id="btn-kg1" class="level-btn btn-kg1">🌱 مرحلة KG 1</button>
+      <button id="btn-kg2" class="level-btn btn-kg2">⭐ مرحلة KG 2</button>
+    </div>
+  </div>
+
+  <div id="top-bar">
+    <span id="level-text">المستوى: KG 1</span>
+    <button class="btn-change" onclick="document.getElementById('welcome-screen').style.display='flex'">تغيير المرحلة 🔄</button>
+  </div>
+
+  <div id="categories-bar">
+    <button class="cat-btn active" onclick="switchCategory('letters_ar', this)">حروف عربية أ-ي</button>
+    <button class="cat-btn" onclick="switchCategory('harakat_ar', this)">حركات الحروف (28)</button>
+    <button class="cat-btn" onclick="switchCategory('colors_ar', this)">ألوان عربية (12)</button>
+    <button class="cat-btn" onclick="switchCategory('days_ar', this)">أيام الأسبوع (7)</button>
+    <button class="cat-btn" onclick="switchCategory('numbers_ar', this)">أرقام عربية 1-30</button>
+    <button class="cat-btn" onclick="switchCategory('words_ar', this)">كلمات عربية (28)</button>
+    <button class="cat-btn" onclick="switchCategory('letters_en', this)">English A-Z</button>
+    <button class="cat-btn" onclick="switchCategory('phonics_en', this)">أصوات Phonics (26)</button>
+    <button class="cat-btn" onclick="switchCategory('colors_en', this)">Colors (12)</button>
+    <button class="cat-btn" onclick="switchCategory('days_en', this)">Days of Week (7)</button>
+    <button class="cat-btn" onclick="switchCategory('numbers_en', this)">Numbers 1-30</button>
+    <button class="cat-btn" onclick="switchCategory('words_en', this)">English Words (10)</button>
+  </div>
+
+  <div id="items-bar"></div>
+
+  <div id="stage-title">🎯 اصطد العنصر قبل أن يهرب!</div>
+  <div id="catch-counter">المحاولة: 1 من 3 🏃‍♂️</div>
+
+  <div id="main-display">
+    <div id="main-char">🔴</div>
+    <div id="main-sub">أحمر</div>
+  </div>
+
+  <div id="nav-controls">
+    <button class="btn btn-nav" onclick="prevItem()">السابق ⬅️</button>
+    <button class="btn btn-ai" onclick="openAiModal()">المعلم 🤖</button>
+    <button class="btn btn-spell" onclick="spellCurrentItem()">تهجئة 🔤</button>
+    <button class="btn btn-nav" onclick="nextItem()">التالي ➡️</button>
+  </div>
+
+  <div id="quiz-box">
+    <h3 style="color:#d63031;">عاش البطل! 🎉</h3>
+    <p style="margin-top:5px; font-weight:bold;">ما اسم هذا العنصر؟</p>
+    <div class="quiz-options" id="quiz-options"></div>
+  </div>
+
+  <div id="ai-modal">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0; color:#7950f2;">🤖 المعلم الذكي</h3>
+      <button onclick="document.getElementById('ai-modal').style.display='none'" style="border:none; background:#ff6b6b; color:#fff; border-radius:50%; width:26px; height:26px; font-weight:bold; cursor:pointer;">✕</button>
+    </div>
+    <div id="ai-response">اضغط لاختيار قصة أو فزورة!</div>
+    <div>
+      <button class="ai-btn" onclick="aiAction('story')">📖 قصة</button>
+      <button class="ai-btn" onclick="aiAction('quiz')">🧩 فزورة</button>
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+    let spellTimer = null;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq, type, duration, vol) {
+      initAudio();
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+      } catch(e){}
+    }
+
+    function soundBoing() {
+      initAudio();
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+      } catch(e){}
+    }
+
+    function soundWin() {
+      [261, 329, 392, 523].forEach((f, i) => setTimeout(() => playTone(f, 'triangle', 0.2, 0.3), i * 90));
+    }
+    function soundError() { playTone(140, 'sawtooth', 0.25, 0.3); }
+
+    // دالة النطق الخارجي عبر ResponsiveVoice (تتخطى حظر الـ APK تماماً)
+    function speakText(text, lang = 'ar') {
+      initAudio();
+      if (typeof responsiveVoice !== 'undefined') {
+        let voiceName = (lang === 'ar') ? "Arabic Female" : "UK English Female";
+        responsiveVoice.speak(text, voiceName, { rate: 0.9 });
+      } else {
+        // بديل احتياطي لو المكتبة لم تحمل
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utter = new SpeechSynthesisUtterance(text);
+          utter.lang = (lang === 'ar') ? 'ar-SA' : 'en-US';
+          utter.rate = 0.85;
+          window.speechSynthesis.speak(utter);
+        }
+      }
+    }
+
+    function spellCurrentItem() {
+      initAudio();
+      if (spellTimer) clearTimeout(spellTimer);
+      const item = data[curCategory][curIndex];
+
+      if (item.spell && item.spell.length > 0) {
+        item.spell.forEach((letter, idx) => {
+          setTimeout(() => {
+            document.getElementById('main-sub').innerText = letter;
+            speakText(letter, item.lang || 'ar');
+          }, idx * 1000);
+        });
+        spellTimer = setTimeout(() => {
+          document.getElementById('main-sub').innerText = item.n;
+          speakText(item.n, item.lang || 'ar');
+        }, item.spell.length * 1000 + 200);
+      } else {
+        speakText(item.n, item.lang || 'ar');
+      }
+    }
+
+    const data = {
+      letters_ar: [
+        {c:'أ', n:'ألف'}, {c:'ب', n:'باء'}, {c:'ت', n:'تاء'}, {c:'ث', n:'ثاء'},
+        {c:'ج', n:'جيم'}, {c:'ح', n:'حاء'}, {c:'خ', n:'خاء'}, {c:'د', n:'دال'},
+        {c:'ذ', n:'ذال'}, {c:'ر', n:'راء'}, {c:'ز', n:'زاي'}, {c:'س', n:'سين'},
+        {c:'ش', n:'شين'}, {c:'ص', n:'صاد'}, {c:'ض', n:'ضاد'}, {c:'ط', n:'طاء'},
+        {c:'ظ', n:'ظاء'}, {c:'ع', n:'عين'}, {c:'غ', n:'غين'}, {c:'ف', n:'فاء'},
+        {c:'ق', n:'قاف'}, {c:'ك', n:'كاف'}, {c:'ل', n:'لام'}, {c:'م', n:'ميم'},
+        {c:'ن', n:'نون'}, {c:'هـ', n:'هاء'}, {c:'و', n:'واو'}, {c:'ي', n:'ياء'}
+      ],
+      harakat_ar: [
+        {c:'أَ', n:'أ فتحة أرنب', spell:['أ', 'فتحة', 'أرنب']},
+        {c:'بَ', n:'ب فتحة بطة', spell:['ب', 'فتحة', 'بطة']},
+        {c:'تَ', n:'ت فتحة تمر', spell:['ت', 'فتحة', 'تمر']},
+        {c:'ثَ', n:'ث فتحة ثعلب', spell:['ث', 'فتحة', 'ثعلب']},
+        {c:'جَ', n:'ج فتحة جمل', spell:['ج', 'فتحة', 'جمل']},
+        {c:'حَ', n:'ح فتحة حمامة', spell:['ح', 'فتحة', 'حمامة']},
+        {c:'خَ', n:'خ فتحة خروف', spell:['خ', 'فتحة', 'خروف']},
+        {c:'دَ', n:'د فتحة دجاجة', spell:['د', 'فتحة', 'دجاجة']},
+        {c:'ذَ', n:'ذ فتحة ذيل', spell:['ذ', 'فتحة', 'ذيل']},
+        {c:'رَ', n:'ر فتحة رجل', spell:['ر', 'فتحة', 'رجل']},
+        {c:'زَ', n:'ز فتحة زرافة', spell:['ز', 'فتحة', 'زرافة']},
+        {c:'سَ', n:'س فتحة سمكة', spell:['س', 'فتحة', 'سمكة']},
+        {c:'شَ', n:'ش فتحة شمس', spell:['ش', 'فتحة', 'شمس']},
+        {c:'صَ', n:'ص فتحة صقر', spell:['ص', 'فتحة', 'صقر']},
+        {c:'ضَ', n:'ض فتحة ضابط', spell:['ض', 'فتحة', 'ضابط']},
+        {c:'طَ', n:'ط فتحة طيارة', spell:['ط', 'فتحة', 'طيارة']},
+        {c:'ظَ', n:'ظ فتحة ظرف', spell:['ظ', 'فتحة', 'ظرف']},
+        {c:'عَ', n:'ع فتحة عين', spell:['ع', 'فتحة', 'عين']},
+        {c:'غَ', n:'غ فتحة غزال', spell:['غ', 'فتحة', 'غزال']},
+        {c:'فَ', n:'ف فتحة فراشة', spell:['ف', 'فتحة', 'فراشة']},
+        {c:'قَ', n:'ق فتحة قمر', spell:['ق', 'فتحة', 'قمر']},
+        {c:'كَ', n:'ك فتحة كلب', spell:['ك', 'فتحة', 'كلب']},
+        {c:'لَ', n:'ل فتحة ليمون', spell:['ل', 'فتحة', 'ليمون']},
+        {c:'مَ', n:'م فتحة موز', spell:['م', 'فتحة', 'موز']},
+        {c:'نَ', n:'ن فتحة نحلة', spell:['ن', 'فتحة', 'نحلة']},
+        {c:'هَـ', n:'هـ فتحة هرم', spell:['هاء', 'فتحة', 'هرم']},
+        {c:'وَ', n:'و فتحة وردة', spell:['واو', 'فتحة', 'وردة']},
+        {c:'يَ', n:'ي فتحة يد', spell:['ياء', 'فتحة', 'يد']}
+      ],
+      colors_ar: [
+        {c:'🔴', n:'أحمر', spell:['ألف', 'حاء', 'ميم', 'راء']},
+        {c:'🔵', n:'أزرق', spell:['ألف', 'زاي', 'راء', 'قاف']},
+        {c:'🟢', n:'أخضر', spell:['ألف', 'خاء', 'ضاد', 'راء']},
+        {c:'🟡', n:'أصفر', spell:['ألف', 'صاد', 'فاء', 'راء']},
+        {c:'🟠', n:'برتقالي', spell:['باء', 'راء', 'تاء', 'قاف', 'ألف', 'لام', 'ياء']},
+        {c:'🌸', n:'وردي', spell:['واو', 'راء', 'دال', 'ياء']},
+        {c:'🟣', n:'بنفسجي', spell:['باء', 'نون', 'فاء', 'سين', 'جيم', 'ياء']},
+        {c:'🟤', n:'بني', spell:['باء', 'نون', 'ياء']},
+        {c:'⚫', n:'أسود', spell:['ألف', 'سين', 'واو', 'دال']},
+        {c:'⚪', n:'أبيض', spell:['ألف', 'باء', 'ياء', 'ضاد']},
+        {c:'🔘', n:'رمادي', spell:['راء', 'ميم', 'ألف', 'دال', 'ياء']},
+        {c:'⭐', n:'ذهبي', spell:['ذال', 'هاء', 'باء', 'ياء']}
+      ],
+      days_ar: [
+        {c:'1️⃣', n:'السبت', spell:['ألف', 'لام', 'سين', 'باء', 'تاء']},
+        {c:'2️⃣', n:'الأحد', spell:['ألف', 'لام', 'ألف', 'حاء', 'دال']},
+        {c:'3️⃣', n:'الاثنين', spell:['ألف', 'لام', 'ثاء', 'نون', 'ياء', 'نون']},
+        {c:'4️⃣', n:'الثلاثاء', spell:['ألف', 'لام', 'ثاء', 'لام', 'ألف', 'ثاء']},
+        {c:'5️⃣', n:'الأربعاء', spell:['ألف', 'لام', 'ألف', 'راء', 'باء', 'عين']},
+        {c:'6️⃣', n:'الخميس', spell:['ألف', 'لام', 'خاء', 'ميم', 'ياء', 'سين']},
+        {c:'🕌', n:'الجمعة', spell:['ألف', 'لام', 'جيم', 'ميم', 'عين', 'تاء']}
+      ],
+      numbers_ar: [
+        {c:'1', n:'واحد'}, {c:'2', n:'اثنان'}, {c:'3', n:'ثلاثة'}, {c:'4', n:'أربعة'}, {c:'5', n:'خمسة'},
+        {c:'6', n:'ستة'}, {c:'7', n:'سبعة'}, {c:'8', n:'ثمانية'}, {c:'9', n:'تسعة'}, {c:'10', n:'عشرة'},
+        {c:'11', n:'أحد عشر'}, {c:'12', n:'اثنا عشر'}, {c:'13', n:'ثلاثة عشر'}, {c:'14', n:'أربعة عشر'}, {c:'15', n:'خمسة عشر'},
+        {c:'16', n:'ستة عشر'}, {c:'17', n:'سبعة عشر'}, {c:'18', n:'ثمانية عشر'}, {c:'19', n:'تسعة عشر'}, {c:'20', n:'عشرون'},
+        {c:'21', n:'واحد وعشرون'}, {c:'22', n:'اثنان وعشرون'}, {c:'23', n:'ثلاثة وعشرون'}, {c:'24', n:'أربعة وعشرون'}, {c:'25', n:'خمسة وعشرون'},
+        {c:'26', n:'ستة وعشرون'}, {c:'27', n:'سبعة وعشرون'}, {c:'28', n:'ثمانية وعشرون'}, {c:'29', n:'تسعة وعشرون'}, {c:'30', n:'ثلاثون'}
+      ],
+      words_ar: [
+        {c:'🦁', n:'أسد', spell:['ألف', 'سين', 'دال']},
+        {c:'🦆', n:'بطة', spell:['باء', 'طاء', 'تاء']},
+        {c:'🍎', n:'تفاح', spell:['تاء', 'فاء', 'ألف', 'حاء']},
+        {c:'🦊', n:'ثعلب', spell:['ثاء', 'عين', 'لام', 'باء']},
+        {c:'🐪', n:'جمل', spell:['جيم', 'ميم', 'لام']},
+        {c:'🐎', n:'حصان', spell:['حاء', 'صاد', 'ألف', 'نون']},
+        {c:'🐑', n:'خروف', spell:['خاء', 'راء', 'واو', 'فاء']},
+        {c:'🐻', n:'دب', spell:['دال', 'باء']},
+        {c:'🐺', n:'ذئب', spell:['ذال', 'همزة', 'باء']},
+        {c:'🪶', n:'ريشة', spell:['راء', 'ياء', 'شين', 'تاء']},
+        {c:'🦒', n:'زرافة', spell:['زاي', 'راء', 'ألف', 'فاء', 'تاء']},
+        {c:'🐟', n:'سمكة', spell:['سين', 'ميم', 'كاف', 'تاء']},
+        {c:'☀️', n:'شمس', spell:['شين', 'ميم', 'سين']},
+        {c:'🦅', n:'صقر', spell:['صاد', 'قاف', 'راء']},
+        {c:'🐸', n:'ضفدع', spell:['ضاد', 'فاء', 'دال', 'عين']},
+        {c:'✈️', n:'طيارة', spell:['طاء', 'ياء', 'ألف', 'راء', 'تاء']},
+        {c:'✉️', n:'ظرف', spell:['ظاء', 'راء', 'فاء']},
+        {c:'🐦', n:'عصفور', spell:['عين', 'صاد', 'فاء', 'واو', 'راء']},
+        {c:'🦌', n:'غزال', spell:['غين', 'زاي', 'ألف', 'لام']},
+        {c:'🐘', n:'فيل', spell:['فاء', 'ياء', 'لام']},
+        {c:'🐱', n:'قطة', spell:['قاف', 'طاء', 'تاء']},
+        {c:'🐶', n:'كلب', spell:['كاف', 'لام', 'باء']},
+        {c:'🍋', n:'ليمون', spell:['لام', 'ياء', 'ميم', 'واو', 'نون']},
+        {c:'🍌', n:'موز', spell:['ميم', 'واو', 'زاي']},
+        {c:'🐝', n:'نحلة', spell:['نون', 'حاء', 'لام', 'تاء']},
+        {c:'🔺', n:'هرم', spell:['هاء', 'راء', 'ميم']},
+        {c:'🌹', n:'وردة', spell:['واو', 'راء', 'دال', 'تاء']},
+        {c:'🖐️', n:'يد', spell:['ياء', 'دال']}
+      ],
+      letters_en: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').map(ch => ({c: ch, n: ch, lang: 'en', spell:[ch]})),
+      phonics_en: [
+        {c:'Aa', n:'Apple', spell:['A', 'Apple', 'تفاحة'], lang:'en'},
+        {c:'Bb', n:'Ball', spell:['B', 'Ball', 'كرة'], lang:'en'},
+        {c:'Cc', n:'Cat', spell:['C', 'Cat', 'قطة'], lang:'en'},
+        {c:'Dd', n:'Dog', spell:['D', 'Dog', 'كلب'], lang:'en'},
+        {c:'Ee', n:'Egg', spell:['E', 'Egg', 'بيضة'], lang:'en'},
+        {c:'Ff', n:'Fish', spell:['F', 'Fish', 'سمكة'], lang:'en'},
+        {c:'Gg', n:'Girl', spell:['G', 'Girl', 'بنت'], lang:'en'},
+        {c:'Hh', n:'Hat', spell:['H', 'Hat', 'قبعة'], lang:'en'},
+        {c:'Ii', n:'Ice', spell:['I', 'Ice', 'ثلج'], lang:'en'},
+        {c:'Jj', n:'Jam', spell:['J', 'Jam', 'مربى'], lang:'en'},
+        {c:'Kk', n:'Key', spell:['K', 'Key', 'مفتاح'], lang:'en'},
+        {c:'Ll', n:'Lion', spell:['L', 'Lion', 'أسد'], lang:'en'},
+        {c:'Mm', n:'Moon', spell:['M', 'Moon', 'قمر'], lang:'en'},
+        {c:'Nn', n:'Nut', spell:['N', 'Nut', 'بندق'], lang:'en'},
+        {c:'Oo', n:'Orange', spell:['O', 'Orange', 'برتقالة'], lang:'en'},
+        {c:'Pp', n:'Pen', spell:['P', 'Pen', 'قلم'], lang:'en'},
+        {c:'Qq', n:'Queen', spell:['Q', 'Queen', 'ملكة'], lang:'en'},
+        {c:'Rr', n:'Red', spell:['R', 'Red', 'أحمر'], lang:'en'},
+        {c:'Ss', n:'Sun', spell:['S', 'Sun', 'شمس'], lang:'en'},
+        {c:'Tt', n:'Tree', spell:['T', 'Tree', 'شجرة'], lang:'en'},
+        {c:'Uu', n:'Umbrella', spell:['U', 'Umbrella', 'شمسية'], lang:'en'},
+        {c:'Vv', n:'Van', spell:['V', 'Van', 'شاحنة'], lang:'en'},
+        {c:'Ww', n:'Water', spell:['W', 'Water', 'ماء'], lang:'en'},
+        {c:'Xx', n:'Xylophone', spell:['X', 'Xylophone', 'إكسيلوفون'], lang:'en'},
+        {c:'Yy', n:'Yellow', spell:['Y', 'Yellow', 'أصفر'], lang:'en'},
+        {c:'Zz', n:'Zoo', spell:['Z', 'Zoo', 'حديقة حيوان'], lang:'en'}
+      ],
+      colors_en: [
+        {c:'🔴', n:'Red', lang:'en', spell:['R', 'E', 'D']},
+        {c:'🔵', n:'Blue', lang:'en', spell:['B', 'L', 'U', 'E']},
+        {c:'🟢', n:'Green', lang:'en', spell:['G', 'R', 'E', 'E', 'N']},
+        {c:'🟡', n:'Yellow', lang:'en', spell:['Y', 'E', 'L', 'L', 'O', 'W']},
+        {c:'🟠', n:'Orange', lang:'en', spell:['O', 'R', 'A', 'N', 'G', 'E']},
+        {c:'🌸', n:'Pink', lang:'en', spell:['P', 'I', 'N', 'K']},
+        {c:'🟣', n:'Purple', lang:'en', spell:['P', 'U', 'R', 'P', 'L', 'E']},
+        {c:'🟤', n:'Brown', lang:'en', spell:['B', 'R', 'O', 'W', 'N']},
+        {c:'⚫', n:'Black', lang:'en', spell:['B', 'L', 'A', 'C', 'K']},
+        {c:'⚪', n:'White', lang:'en', spell:['W', 'H', 'I', 'T', 'E']},
+        {c:'🔘', n:'Gray', lang:'en', spell:['G', 'R', 'A', 'Y']},
+        {c:'⭐', n:'Gold', lang:'en', spell:['G', 'O', 'L', 'D']}
+      ],
+      days_en: [
+        {c:'☀️', n:'Sunday', lang:'en', spell:['S','U','N','D','A','Y']},
+        {c:'🌙', n:'Monday', lang:'en', spell:['M','O','N','D','A','Y']},
+        {c:'⭐', n:'Tuesday', lang:'en', spell:['T','U','E','S','D','A','Y']},
+        {c:'🌈', n:'Wednesday', lang:'en', spell:['W','E','D','N','E','S','D','A','Y']},
+        {c:'🎉', n:'Thursday', lang:'en', spell:['T','H','U','R','S','D','A','Y']},
+        {c:'🕌', n:'Friday', lang:'en', spell:['F','R','I','D','A','Y']},
+        {c:'🎈', n:'Saturday', lang:'en', spell:['S','A','T','U','R','D','A','Y']}
+      ],
+      numbers_en: [
+        {c:'1', n:'One', lang:'en', spell:['O','N','E']}, {c:'2', n:'Two', lang:'en', spell:['T','W','O']},
+        {c:'3', n:'Three', lang:'en', spell:['T','H','R','E','E']}, {c:'4', n:'Four', lang:'en', spell:['F','O','U','R']},
+        {c:'5', n:'Five', lang:'en', spell:['F','I','V','E']}, {c:'6', n:'Six', lang:'en', spell:['S','I','X']},
+        {c:'7', n:'Seven', lang:'en', spell:['S','E','V','E','N']}, {c:'8', n:'Eight', lang:'en', spell:['E','I','G','H','T']},
+        {c:'9', n:'Nine', lang:'en', spell:['N','I','N','E']}, {c:'10', n:'Ten', lang:'en', spell:['T','E','N']},
+        {c:'11', n:'Eleven', lang:'en'}, {c:'12', n:'Twelve', lang:'en'}, {c:'13', n:'Thirteen', lang:'en'},
+        {c:'14', n:'Fourteen', lang:'en'}, {c:'15', n:'Fifteen', lang:'en'}, {c:'16', n:'Sixteen', lang:'en'},
+        {c:'17', n:'Seventeen', lang:'en'}, {c:'18', n:'Eighteen', lang:'en'}, {c:'19', n:'Nineteen', lang:'en'},
+        {c:'20', n:'Twenty', lang:'en'}, {c:'21', n:'Twenty-One', lang:'en'}, {c:'22', n:'Twenty-Two', lang:'en'},
+        {c:'23', n:'Twenty-Three', lang:'en'}, {c:'24', n:'Twenty-Four', lang:'en'}, {c:'25', n:'Twenty-Five', lang:'en'},
+        {c:'26', n:'Twenty-Six', lang:'en'}, {c:'27', n:'Twenty-Seven', lang:'en'}, {c:'28', n:'Twenty-Eight', lang:'en'},
+        {c:'29', n:'Twenty-Nine', lang:'en'}, {c:'30', n:'Thirty', lang:'en'}
+      ],
+      words_en: [
+        {c:'🐱', n:'Cat', lang:'en', spell:['C','A','T']},
+        {c:'🐶', n:'Dog', lang:'en', spell:['D','O','G']},
+        {c:'☀️', n:'Sun', lang:'en', spell:['S','U','N']},
+        {c:'🚌', n:'Bus', lang:'en', spell:['B','U','S']},
+        {c:'🐜', n:'Ant', lang:'en', spell:['A','N','T']},
+        {c:'👦', n:'Boy', lang:'en', spell:['B','O','Y']},
+        {c:'🚗', n:'Car', lang:'en', spell:['C','A','R']},
+        {c:'🥚', n:'Egg', lang:'en', spell:['E','G','G']},
+        {c:'🦊', n:'Fox', lang:'en', spell:['F','O','X']},
+        {c:'🧢', n:'Hat', lang:'en', spell:['H','A','T']}
+      ]
+    };
+
+    let curGrade = 'kg1';
+    let curCategory = 'letters_ar';
+    let curIndex = 0;
+    let huntStep = 0;
+
+    function selectGrade(g) {
+      initAudio();
+      curGrade = g;
+      document.getElementById('welcome-screen').style.display = 'none';
+      document.getElementById('level-text').innerText = (g === 'kg1') ? 'المستوى: KG 1' : 'المستوى: KG 2';
+      curIndex = 0; renderItems(); loadItem();
+    }
+
+    const b1 = document.getElementById('btn-kg1');
+    const b2 = document.getElementById('btn-kg2');
+    ['click', 'touchstart'].forEach(ev => {
+      b1.addEventListener(ev, (e) => { e.preventDefault(); selectGrade('kg1'); }, { passive: false });
+      b2.addEventListener(ev, (e) => { e.preventDefault(); selectGrade('kg2'); }, { passive: false });
+    });
+
+    function switchCategory(cat, btn) {
+      curCategory = cat; curIndex = 0; huntStep = 0;
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active'); renderItems(); loadItem();
+    }
+
+    function renderItems() {
+      const bar = document.getElementById('items-bar');
+      bar.innerHTML = '';
+      data[curCategory].forEach((it, idx) => {
+        const span = document.createElement('span');
+        span.className = 'mini-item' + (idx === curIndex ? ' active' : '');
+        span.innerText = it.c;
+        ['click', 'touchstart'].forEach(ev => {
+          span.addEventListener(ev, (e) => {
+            e.preventDefault();
+            curIndex = idx;
+            loadItem();
+            speakText(it.n, it.lang || 'ar');
+          }, { passive: false });
+        });
+        bar.appendChild(span);
+      });
+    }
+
+    function loadItem() {
+      huntStep = 0;
+      const item = data[curCategory][curIndex];
+      const disp = document.getElementById('main-display');
+      disp.style.display = 'flex'; disp.style.left = '50%'; disp.style.top = '44%';
+      document.getElementById('main-char').innerText = item.c;
+      document.getElementById('main-sub').innerText = (curGrade === 'kg2' || curCategory !== 'letters_ar') ? item.n : '';
+      document.getElementById('catch-counter').innerText = 'المحاولة: 1 من 3 🏃‍♂️';
+      renderItems();
+      speakText(item.n, item.lang || 'ar');
+    }
+
+    const mainDisp = document.getElementById('main-display');
+    ['click', 'touchstart'].forEach(ev => {
+      mainDisp.addEventListener(ev, (e) => {
+        e.preventDefault();
+        const item = data[curCategory][curIndex];
+        speakText(item.n, item.lang || 'ar');
+        huntItem();
+      }, { passive: false });
+    });
+
+    function huntItem() {
+      huntStep++;
+      const item = data[curCategory][curIndex];
+      soundBoing();
+      if (huntStep === 1) {
+        mainDisp.style.left = '25%'; mainDisp.style.top = '35%';
+        document.getElementById('catch-counter').innerText = 'هرب! الحقه سريعا! 🏃‍♂️';
+        speakText(item.n, item.lang || 'ar');
+      } else if (huntStep === 2) {
+        mainDisp.style.left = '75%'; mainDisp.style.top = '55%';
+        document.getElementById('catch-counter').innerText = 'اقتربت من صيده! اضغط مرة أخرى! 🎯';
+        speakText(item.n, item.lang || 'ar');
+      } else {
+        mainDisp.style.display = 'none'; huntStep = 0; soundWin();
+        setTimeout(showQuiz, 300);
+      }
+    }
+
+    function showQuiz() {
+      const item = data[curCategory][curIndex];
+      const list = data[curCategory];
+      const qBox = document.getElementById('quiz-box');
+      const qOpts = document.getElementById('quiz-options');
+      qOpts.innerHTML = '';
+      let choices = [item];
+      while (choices.length < Math.min(4, list.length)) {
+        let r = list[Math.floor(Math.random() * list.length)];
+        if (!choices.includes(r)) choices.push(r);
+      }
+      choices.sort(() => Math.random() - 0.5);
+      choices.forEach(opt => {
+        const b = document.createElement('button');
+        b.className = 'option-btn';
+        b.innerText = (curCategory === 'letters_ar' && curGrade === 'kg1') ? opt.c : opt.n;
+        ['click', 'touchstart'].forEach(ev => {
+          b.addEventListener(ev, (e) => {
+            e.preventDefault();
+            speakText(opt.n, opt.lang || 'ar');
+            if (opt === item) {
+              soundWin();
+              setTimeout(() => { qBox.style.display = 'none'; nextItem(); }, 1000);
+            } else {
+              soundError();
+            }
+          }, { passive: false });
+        });
+        qOpts.appendChild(b);
+      });
+      qBox.style.display = 'block';
+    }
+
+    function openAiModal() {
+      initAudio();
+      document.getElementById('ai-response').innerText = 'اختر قصة قصيرة أو فزورة ممتعة!';
+      document.getElementById('ai-modal').style.display = 'block';
+      speakText('أهلاً بك في قسم المعلم الذكي', 'ar');
+    }
+
+    function aiAction(type) {
+      const item = data[curCategory][curIndex];
+      const txt = (type === 'story') ? `كان يا ما كان، صديقنا الجميل ${item.n} يحب اللعب والتعلم معنا كل يوم!` : `فزورة للأذكياء: من هو العنصر الجميل الذي يبدأ أو يمثل ${item.n}?`;
+      document.getElementById('ai-response').innerText = txt;
+      speakText(txt, 'ar');
+    }
+
+    function nextItem() { 
+      curIndex = (curIndex + 1) % data[curCategory].length; 
+      loadItem(); 
+    }
+    function prevItem() { 
+      curIndex = (curIndex - 1 + data[curCategory].length) % data[curCategory].length; 
+      loadItem(); 
+    }
+
+    renderItems();
+  </script>
+</body>
+</html>
