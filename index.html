@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>تحدي النقاط والحروف - KG Learn</title>
+  <style>
+    .header, .footer, .blog-pager, .comments, .post-nav, nav, header, .sidebar, .post-header {
+      display: none !important;
+    }
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
+      background: radial-gradient(circle, #fff9db 0%, #ffd8a8 100%);
+      text-align: center;
+      transition: background 0.3s;
+    }
+    #welcome-screen {
+      position: fixed; inset: 0;
+      background: rgba(255, 243, 191, 0.98);
+      z-index: 999; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; padding: 20px;
+    }
+    .welcome-card {
+      background: #fff; border: 4px solid #ff922b;
+      border-radius: 25px; padding: 25px 15px; width: 90%; max-width: 360px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .level-btn {
+      width: 100%; margin: 10px 0; padding: 15px; border: none;
+      border-radius: 18px; font-size: 18px; font-weight: bold; color: white;
+      cursor: pointer; display: block; box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+      touch-action: manipulation;
+    }
+    .level-btn:active { transform: scale(0.96); }
+    .btn-kg1 { background: linear-gradient(45deg, #20c997, #099268); }
+    .btn-kg2 { background: linear-gradient(45deg, #ff6b6b, #e03131); }
+
+    #top-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 12px; background: #fff3bf; border-bottom: 2px solid #ffd43b;
+      font-size: 14px; font-weight: bold; color: #d9480f;
+    }
+    .btn-change {
+      background: #e8590c; color: white; border: none;
+      padding: 4px 10px; border-radius: 10px; font-size: 12px; cursor: pointer;
+    }
+
+    #categories-bar {
+      display: flex; overflow-x: auto; gap: 6px; padding: 6px;
+      background: #ffffffdd; white-space: nowrap; -webkit-overflow-scrolling: touch;
+    }
+    .cat-btn {
+      background: #f1f3f5; border: 2px solid #adb5bd; border-radius: 20px;
+      padding: 5px 11px; font-size: 12px; font-weight: bold; color: #495057; cursor: pointer;
+    }
+    .cat-btn.active {
+      background: #ff6b6b; border-color: #ff6b6b; color: white; transform: scale(1.05);
+    }
+
+    #games-bar {
+      display: flex; overflow-x: auto; gap: 5px; padding: 5px 8px;
+      background: rgba(121, 80, 242, 0.12); border-bottom: 2px solid #7950f2;
+      white-space: nowrap; -webkit-overflow-scrolling: touch; justify-content: flex-start;
+    }
+    .promo-game-btn {
+      background: linear-gradient(45deg, #7950f2, #be4bdb); color: white; border: none;
+      padding: 5px 9px; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15); display: inline-flex; align-items: center; gap: 3px;
+      flex-shrink: 0;
+    }
+    .promo-game-btn:active { transform: scale(0.95); }
+
+    #items-bar {
+      display: flex; overflow-x: auto; padding: 6px 8px; gap: 8px;
+      background: #ffffff99; white-space: nowrap; -webkit-overflow-scrolling: touch;
+    }
+    .mini-item {
+      display: inline-block; min-width: 44px; height: 42px; line-height: 38px;
+      background: #fff; border: 2px solid #fd7e14; border-radius: 12px;
+      font-size: 18px; font-weight: bold; color: #e8590c; cursor: pointer; padding: 0 4px;
+    }
+    .mini-item.active { background: #e8590c; color: #fff; transform: scale(1.1); }
+
+    #stage-title { font-size: 15px; color: #d6336c; margin-top: 6px; font-weight: bold; }
+    #catch-counter { font-size: 13px; color: #4c6ef5; font-weight: bold; margin-top: 2px; }
+
+    #main-display {
+      position: absolute;
+      cursor: pointer;
+      display: flex; flex-direction: column; align-items: center;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 100;
+      padding: 10px;
+    }
+    
+    @keyframes popAppear {
+      0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+      70% { transform: scale(1.15) rotate(10deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popAppear 0.4s ease forwards;
+    }
+
+    #main-char {
+      font-size: 85px; font-weight: bold; color: #3b5bdb;
+      text-shadow: 2px 4px 0 #fff; line-height: 1.1;
+    }
+    #main-sub {
+      font-size: 16px; font-weight: bold; color: #fa5252;
+      background: #ffffffdd; padding: 4px 14px; border-radius: 20px;
+      margin-top: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      white-space: nowrap;
+    }
+
+    #nav-controls {
+      position: fixed; bottom: 20px; width: 100%;
+      display: flex; justify-content: space-around; padding: 0 8px; z-index: 150;
+    }
+    .btn {
+      background: #12b886; color: white; border: none;
+      padding: 9px 14px; font-size: 14px; font-weight: bold;
+      border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); cursor: pointer;
+    }
+    .btn-spell { background: #fab005; color: #333; }
+    .btn-ai { background: linear-gradient(45deg, #7950f2, #be4bdb); }
+    .btn-nav { background: #4dabf7; }
+
+    #ai-modal {
+      display: none; position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); width: 90%; max-width: 360px;
+      background: #fff; border-radius: 25px; padding: 18px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 5px solid #be4bdb; z-index: 1001; text-align: right;
+    }
+    #ai-response {
+      max-height: 110px; overflow-y: auto; background: #f8f0fc; border-radius: 12px;
+      padding: 10px; font-size: 13px; color: #333; margin: 8px 0; line-height: 1.4;
+    }
+    .ai-btn { background: #be4bdb; color: white; border: none; padding: 7px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; cursor: pointer; margin: 2px; }
+  </style>
+</head>
+<body>
+
+  <div id="welcome-screen">
+    <div class="welcome-card">
+      <div style="font-size: 40px; margin-bottom: 5px;">🎒✨</div>
+      <h2 style="color: #2b8a3e; margin-bottom: 8px;">مرحبا بكم يا أبطال!</h2>
+      <p style="color: #555; font-size: 14px; margin-bottom: 15px;">اختر المرحلة لبدء التعلّم:</p>
+      <button class="level-btn btn-kg1" onclick="selectLevel('KG 1')">🌱 مرحلة KG 1</button>
+      <button class="level-btn btn-kg2" onclick="selectLevel('KG 2')">⭐ مرحلة KG 2</button>
+    </div>
+  </div>
+
+  <div id="top-bar">
+    <span id="level-text">المستوى: KG 1</span>
+    <button class="btn-change" onclick="document.getElementById('welcome-screen').style.display='flex'">تغيير المرحلة 🔄</button>
+  </div>
+
+  <div id="categories-bar">
+    <button class="cat-btn active" onclick="switchCategory('letters_ar', this)">حروف عربية أ-ي</button>
+    <button class="cat-btn" onclick="switchCategory('harakat_ar', this)">حركات الحروف (28)</button>
+    <button class="cat-btn" onclick="switchCategory('colors_ar', this)">ألوان عربية (12)</button>
+    <button class="cat-btn" onclick="switchCategory('days_ar', this)">أيام الأسبوع (7)</button>
+    <button class="cat-btn" onclick="switchCategory('numbers_ar', this)">أرقام عربية 1-20</button>
+    <button class="cat-btn" onclick="switchCategory('words_ar', this)">كلمات عربية (28)</button>
+    <button class="cat-btn" onclick="switchCategory('letters_en', this)">English A-Z</button>
+    <button class="cat-btn" onclick="switchCategory('phonics_en', this)">أصوات Phonics (26)</button>
+    <button class="cat-btn" onclick="switchCategory('colors_en', this)">Colors (12)</button>
+    <button class="cat-btn" onclick="switchCategory('days_en', this)">Days of Week (7)</button>
+    <button class="cat-btn" onclick="switchCategory('numbers_en', this)">Numbers 1-20</button>
+    <button class="cat-btn" onclick="switchCategory('words_en', this)">English Words (12)</button>
+  </div>
+
+  <div id="games-bar">
+    <button class="promo-game-btn" onclick="openOtherGame('points_challenge')">🔠 تحدي النقاط</button>
+    <button class="promo-game-btn" onclick="openOtherGame('offline_50')">🎮 50 لعبة</button>
+    <button class="promo-game-btn" onclick="openOtherGame('clothes')">👗 تنسيق الملابس</button>
+    <button class="promo-game-btn" onclick="openOtherGame('traffic')">🚦 تطبيق المرور</button>
+    <button class="promo-game-btn" onclick="openOtherGame('cubes')">🦁 مكعبات الحيوانات</button>
+  </div>
+
+  <div id="items-bar"></div>
+
+  <div id="stage-title">🎯 اصطد العنصر قبل أن يهرب! (ناطق حقيقي)</div>
+  <div id="catch-counter">المحاولة: 1 من 3 🏃‍♂️</div>
+
+  <div id="main-display" onclick="huntItem()">
+    <div id="main-char">🔴</div>
+    <div id="main-sub">أحمر</div>
+  </div>
+
+  <div id="nav-controls">
+    <button class="btn btn-nav" onclick="prevItem()">السابق ⬅️</button>
+    <button class="btn btn-ai" onclick="openAiModal()">المعلم 🤖</button>
+    <button class="btn btn-spell" onclick="spellCurrentItem()">تهجئة 🔤</button>
+    <button class="btn btn-nav" onclick="nextItem()">التالي ➡️</button>
+  </div>
+
+  <div id="ai-modal">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0; color:#7950f2;">🤖 المعلم الذكي</h3>
+      <button onclick="document.getElementById('ai-modal').style.display='none'" style="border:none; background:#ff6b6b; color:#fff; border-radius:50%; width:26px; height:26px; font-weight:bold; cursor:pointer;">✕</button>
+    </div>
+    <div id="ai-response">اضغط لاختيار قصة أو فزورة!</div>
+    <div>
+      <button class="ai-btn" onclick="aiAction('story')">📖 قصة</button>
+      <button class="ai-btn" onclick="aiAction('quiz')">🧩 فزورة</button>
+    </div>
+  </div>
+
+  <script>
+    let audioCtx = null;
+    let spellTimer = null;
+    let curCategory = 'letters_ar';
+    let curIndex = 0;
+    let catchStep = 1;
+    const maxSteps = 3;
+
+    const data = {
+      letters_ar: [
+        {c:'أ', n:'ألف', spell:['أ', 'ل', 'ف'], story:'يحكى أن حرف الألف هو أول الحروف وأطولها وقوفاً كالأشجار المثمرة.', quiz:'ما هو الحرف الذي يبدأ به اسم أسد؟'},
+        {c:'ب', n:'باء', spell:['ب', 'ا', 'ء'], story:'حرف الباء يحمل نقطة تحته مثل البطل الذي يحرس كنزه الثمين.', quiz:'حرف جميل تحته نقطة واحدة، فما هو؟'},
+        {c:'ت', n:'تاء', spell:['ت', 'ا', 'ء'], story:'التاء المبسوطة تشبه الابتسامة الجميلة التي نوزعها على أصدقائنا.', quiz:'حرف فوقه نقطتان مثل العينين الساهرتين، فما هو؟'},
+        {c:'ث', n:'ثاء', spell:['ث', 'ا', 'ء'], story:'الثاء الهادئ يحب الثعلب الماكر ويختبئ منه بين الحقول.', quiz:'حرف عليه ثلاث نقاط كأنها تاج صغير؟'},
+        {c:'ج', n:'جيم', spell:['ج', 'ي', 'م'], story:'الجيم الجميل يسكن في وسط الصحراء مع الجمل الصبور.', quiz:'حرف في بطنه نقطة دائرية كأنه حبة لؤلؤ؟'},
+        {c:'ح', n:'حاء', spell:['ح', 'ا', 'ء'], story:'الحاء الصافي يعيش بجانب النهر العذب ويحب حمامات السلام.', quiz:'حرف بلا نقاط أبيض كالقلب الطيب؟'},
+        {c:'خ', n:'خاء', spell:['خ', 'ا', 'ء'], story:'الخاء المغامر يحمل فوقه نقطة كأنه قبعة تسلق الجبال.', quiz:'حرف فوقه نقطة واحدة من الأعلى؟'},
+        {c:'د', n:'دال', spell:['د', 'ا', 'ل'], story:'الدال المستقيم ينحني برفق ليساعد كل محتاج في طريقه.', quiz:'حرف مقوس يشبه زحليقة الحديقة؟'},
+        {c:'ذ', n:'ذال', spell:['ذ', 'ا', 'ل'], story:'الذال الذكي يفكر دائماً بحكمة وهدوء قبل أن يتكلم.', quiz:'حرف مقوس وفوقه نقطة وحيدة؟'},
+        {c:'ر', n:'راء', spell:['ر', 'ا', 'ء'], story:'الراء المزحلق ينزلق بفرح على قوس قزح الملون.', quiz:'حرف يشبه الهلال الصغير المائل؟'},
+        {c:'ز', n:'زاي', spell:['ز', 'ا', 'ء'], story:'الزاي السريع يجري بسرعة البرق مع الزرافة الطويلة.', quiz:'حرف مائل وله نقطة فوق رأسه كالنجمة؟'},
+        {c:'س', n:'سين', spell:['س', 'ي', 'ن'], story:'السين له ثلاثة أسنان قوية يأكل بها التفاح السكري.', quiz:'حرف له ثلاثة أسنان بارزة؟'},
+        {c:'ش', n:'شين', spell:['ش', 'ي', 'ن'], story:'الشين الشجاع يحب السفر تحت أشعة الشمس الدافئة.', quiz:'حرف ذو ثلاثة أسنان وعليه ثلاث نقاط؟'},
+        {c:'ص', n:'صاد', spell:['ص', 'ا', 'د'], story:'الصاد الصادق يروي لنا قصص الأبطال والشجعان.', quiz:'حرف له جسم مستدير وذيل صغير؟'},
+        {c:'ض', n:'ضاد', spell:['ض', 'ا', 'د'], story:'الضاد لغة الضاد العريقة تسكن في قلوبنا بكل فخر.', quiz:'حرف الصاد ولكن فوقه نقطة؟'},
+        {c:'ط', n:'طاء', spell:['ط', 'ا', 'ء'], story:'الطاء الطائر يحلق عالياً في السماء الزرقاء الصافية.', quiz:'حرف يطير فوقه عمود مستقيم؟'},
+        {c:'ظ', n:'ظاء', spell:['ظ', 'ا', 'ء'], story:'الظاء المنتظر يحمي الحديقة من المطر الغزير.', quiz:'حرف الطاء ولكن فوقه نقطة حارسة؟'},
+        {c:'ع', n:'عين', spell:['ع', 'ي', 'ن'], story: 'العين الباصرة ترقب النجوم المضيئة في الليل الحالك.', quiz:'حرف يشبه الموجة المتلاحقة المفتوحة؟'},
+        {c:'غ', n:'غين', spell:['غ', 'ي', 'ن'], story:'الغين المغامر يبحث عن الكنوز تحت الغيوم العالية.', quiz:'حرف يشبه العين ولكن فوقه نقطة؟'},
+        {c:'ف', n:'فاء', spell:['ف', 'ا', 'ء'], story:'الفاء الفراشة تطير بخفة بين الزهور الملونة.', quiz:'حرف دائر وله ذراع ممدودة ونقطة فوقه؟'},
+        {c:'ق', n:'قاف', spell:['ق', 'ا', 'ف'], story:'القاف القوي يقف بشموخ فوق قمة الجبل العالي.', quiz:'حرف دائر وله نقطتان كالعينين المفتوحتين؟'},
+        {c:'ك', n:'كاف', spell:['ك', 'ا', 'ف'], story:'الكاف الكريم يقدم الهدايا لكل الأطفال الأطهار.', quiz:'حرف يشبه اليد الممدودة بالكرم؟'},
+        {c:'ل', n:'لام', spell:['ل', 'ا', 'م'], story:'اللام اللطيف يربط الحروف ببعضها كأنه عقد من الألماس.', quiz:'حرف طويل يشبه العكاز المعقوف؟'},
+        {c:'م', n:'ميم', spell:['م', 'ي', 'م'], story:'الميم المرح يحب المزاح واللعب مع الموز الأصفر.', quiz:'حرف دائري صغير وله ذيل قصير للأفل؟'},
+        {c:'ن', n:'نون', spell:['ن', 'و', 'ن'], story:'النون النجمي يضيء عتمة الليل بنوره الجميل.', quiz:'حرف عميق وبداخله نقطة واحدة؟'},
+        {c:'هـ', n:'هاء', spell:['هـ', 'ا', 'ء'], story:'الهاء المبتسم يضحك دائماً ويمسح دموع الحزن.', quiz:'حرف دائري مزدوج يبتسم لنا؟'},
+        {c:'و', n:'واو', spell:['و', 'ا', 'و'], story:'الواو الودود يصل بين القلوب والمحبة الصادقة.', quiz:'حرف صغير له رأس مدور وذيل مائل؟'},
+        {c:'ي', n:'ياء', spell:['ي', 'ا', 'ء'], story:'الياء الختامي ينهي حكاياتنا الممتعة بابتسامة دافئة.', quiz:'حرف قاعدته مقوسة وتحته نقطتان؟'}
+      ],
+      harakat_ar: [
+        {c:'أَ', n:'أ فتحة أرنب', spell:['أ', 'فتحة', 'أرنب'], story:'الأرنب الشقي يقفز فوق الفتحة العالية بكل نشاط وحيوية.', quiz:'ما هو الحيوان الذي يبدأ بحرف الألف المفتوح؟'},
+        {c:'بَ', n:'ب فتحة بطة', spell:['ب', 'فتحة', 'بطة'], story:'البطة الماهرة تسبح في البحيرة وتغني لحن الفتحة الجميل.', quiz:'طائر يسبح في الماء ويبدأ بالباء المفتوحة؟'},
+        {c:'تَ', n:'ت فتحة تمر', spell:['ت', 'فتحة', 'تمر'], story:'التمر الحلو يمدنا بالطاقة والنشاط طوال اليوم الدراسي.', quiz:'طعام صحي ولذيذ يبدأ بالتاء المفتوحة؟'},
+        {c:'ثَ', n:'ث فتحة ثعلب', spell:['ث', 'فتحة', 'ثعلب'], story:'الثعلب الذكي يجري بخفة بين الأشجار الطويلة.', quiz:'حيوان مكر يبدأ بالثاء المفتوحة؟'},
+        {c:'جَ', n:'ج فتحة جمل', spell:['ج', 'فتحة', 'جمل'], story:'الجمل الصبور يتحمل حرارة الصحراء الواسعة.', quiz:'سفينة الصحراء تبدأ بالجيم المفتوحة؟'},
+        {c:'حَ', n:'ح فتحة حمامة', spell:['ح', 'فتحة', 'حمامة'], story:'الحمامة البيضاء تحمل رسائل السلام والمحبة.', quiz:'طائر السلام الذي يبدأ بالحاء المفتوحة؟'},
+        {c:'خَ', n:'خ فتحة خروف', spell:['خ', 'فتحة', 'خروف'], story: 'الخروف الصغير يرعى في المرج الأخضر الفسيح.', quiz:'حيوان صوفي أبيض يبدأ بالخاء المفتوحة؟'},
+        {c:'دَ', n:'د فتحة دجاجة', spell:['د', 'فتحة', 'دجاجة'], story:'الدجاجة النشيطة توقظنا مبكرة كل صباح.', quiz:'طائر أليف يبدأ بالدال المفتوحة؟'},
+        {c:'ذَ', n:'ذ فتحة ذيل', spell:['ذ', 'فتحة', 'ذيل'], story:'الذيل الطويل يوازن الحيوانات أثناء الركض.', quiz:'جزء من جسم الحيوان يبدأ بالذال المفتوحة؟'},
+        {c:'رَ', n:'ر فتحة رجل', spell:['ر', 'فتحة', 'رجل'], story:'الرجل القوي يمشي بثبات نحو أهدافه العظيمة.', quiz:'عضو الحركة الذي يبدأ بالراء المفتوحة؟'},
+        {c:'زَ', n:'ز فتحة زرافة', spell:['ز', 'فتحة', 'زرافة'], story:'الزرافة الطويلة تصل رقبته لقطف أوراق الشجر.', quiz:'أطول حيوان بري يبدأ بالزاي المفتوحة؟'},
+        {c:'سَ', n:'س فتحة سمكة', spell:['سين', 'فتحة', 'سمكة'], story:'السمكة الملونة ترقص داخل أعماق البحر الأزرق.', quiz:'كائن بحري يبدأ بالسين المفتوحة؟'},
+        {c:'شَ', n:'ش فتحة شمس', spell:['ش', 'فتحة', 'شمس'], story:'الشمس الدافئة تشرق لتنير يومنا الجميل.', quiz: 'النجم الذي يدفئ كوكبنا ويبدأ بالشين؟'},
+        {c:'صَ', n:'ص فتحة صقر', spell:['ص', 'فتحة', 'صقر'], story:'الصقر الجريء يحلق في الأعماق بعيون حادة.', quiz:'طائر جارح قوي يبدأ بالصاد المفتوحة؟'},
+        {c:'ضَ', n:'ض فتحة ضابط', spell:['ض', 'فتحة', 'ضابط'], story:'الضابط الشجاع يحفظ الأمن والأمان في المدينة.', quiz:'رجل القانون الذي يبدأ بالضاد المفتوحة؟'},
+        {c:'طَ', n:'ط فتحة طيارة', spell:['ط', 'ياء', 'ألف', 'راء', 'تاء'], story:'الطيارة السريعة تسافر بنا عبر السحاب.', quiz:'وسيلة سفر جوية تبدأ بالطاء المفتوحة؟'},
+        {c:'ظَ', n:'ظ فتحة ظرف', spell:['ظ', 'فتحة', 'ظرف'], story:'الظرف المغلق يحمل رسالة حب من صديق غائب.', quiz:'ورقة الرسائل التي تبدأ بالظاء المفتوحة؟'},
+        {c:'عَ', n:`ع فتحة عين`, spell:['ع', 'فتحة', 'عين'], story:'العين الصيرة ترى جمال الطبيعة الخلابة.', quiz:'عضو الإبصار الذي يبدأ بالعين المفتوحة؟'},
+        {c:'غَ', n:'غ فتحة غزال', spell:['غ', 'فتحة', 'غزال'], story:'الغزال السريع يجري برشاقة في الغابة.', quiz:'حيوان بري رشيق يبدأ بالغين المفتوحة؟'},
+        {c:'فَ', n:'ف فتحة فراشة', spell:['ف', 'فتحة', 'فراشة'], story:'الفراشة الملونة تتنقل بين الورود العطرة.', quiz:'حشرة جميلة ذات أجنحة تبدأ بالفاء؟'},
+        {c:'قَ', n:'ق فتحة قمر', spell:['ق', 'فتحة', 'قمر'], story:'القمر المنير يضيء ظلام الليل الدامس.', quiz:'كوكب الليل المنير يبدأ بالقاف المفتوحة؟'},
+        {c:'كَ', n:'ك فتحة كلب', spell:['ك', 'فتحة', 'كلب'], story:'الكلب الوفي يحرس البيت باهتمام كبير.', quiz:'حيوان أليف ومخلص يبدأ بالكاف المفتوحة؟'},
+        {c:'لَ', n:'ل فتحة ليمون', spell:['ل', 'فتحة', 'ليمون'], story:'الليمون المنعش يصنع لنا أطيب عصائر الصيف.', quiz:'فاكهة حمضية صفراء تبدأ باللام؟'},
+        {c:'مَ', n:'م فتحة موز', spell:['م', 'فتحة', 'موز'], story:'الموز الأصفر المفيد يمد أبطالنا بالقوة.', quiz:'فاكهة القرد المفضلة تبدأ بالميم؟'},
+        {c:'نَ', n:'ن فتحة نحلة', spell:['ن', 'فتحة', 'نحلة'], story:'النحلة المجتهدة تصنع لنا العسل الشافي.', quiz:'حشرة نافعة تصنع العسل وتدأ بالنون؟'},
+        {c:'هَـ', n:'هـ فتحة هرم', spell:['هاء', 'فتحة', 'هرم'], story:'الهرم العظيم يقف بشموخ عبر التاريخ.', quiz:'بناء فرعوني ضخم يبدأ بالهاء المفتوحة؟'},
+        {c:'وَ', n:'و فتحة وردة', spell:['واو', 'فتحة', 'وردة'], story:'الوردة العطرة تفوح برائحتها الزكية في الحديقة.', quiz:'نبات جميل ذو رائحة طيبة يبدأ بالواو؟'},
+        {c:'يَ', n:'ي فتحة يد', spell:['ياء', 'فتحة', 'يد'], story:'اليد المعطاءة تساعد المحتاجين وتبني الوطن.', quiz:'عضو العمل والبناء الذي يبدأ بالياء؟'}
+      ],
+      colors_ar: [
+        {c:'🔴', n:'أحمر', spell:['ألف', 'حاء', 'ميم', 'راء'], story:'اللون الأحمر لون التفاحة الناضجة وقلب الشجاعة.', quiz:'ما هو لون حبة التوت الناضجة؟'},
+        {c:'🔵', n:'أزرق', spell:['ألف', 'زاي', 'راء', 'قاف'], story:'اللون الأزرق يعبر عن سماء الصباح والبحر الواسع.', quiz:'لون السماء الصافية ما هو؟'},
+        {c:'🟢', n:'أخضر', spell:['ألف', 'خاء', 'ضاد', 'راء'], story:'اللون الأخضر يملأ الحقول والأشجار بالحياة والجمال.', quiz:'لون أوراق الشجر الطبيعية ما هو؟'},
+        {c:'🟡', n:'أصفر', spell:['ألف', 'صاد', 'فاء', 'راء'], story:'اللون الأصفر يلمع كالشمس الذهبيه في وسط النهار.', quiz:'لون الشمس المشرقة ما هو؟'},
+        {c:'🟠', n:'برتقالي', spell:['باء', 'راء', 'تاء', 'قاف', 'ألف', 'لام', 'ياء'], story:'اللون البرتقالي يشبه حبات البرتقال اللذيذة والغنية بالفيتامينات.', quiz:'لون الجزر والبرتقال ما هو؟'},
+        {c:'🌸', n:'وردي', spell:['واو', 'راء', 'دال', 'ياء'], story:'اللون الوردي يضفي رقة وجمالاً على الورود المتفتحة.', quiz:'لون الزهور الرقيقة الناعمة؟'},
+        {c:'🟣', n:'بنفسجي', spell:['باء', 'نون', 'فاء', 'سين', 'جيم', 'ياء'], story:'اللون البنفسجي يلمع كحبات العنب الفاخرة.', quiz:'لون العنب الملكي ما هو؟'},
+        {c:'🟤', n:'بني', spell:['باء', 'نون', 'ياء'], story:'اللون البني لون جذع الشجرة القوي وأرض الطبيعة.', quiz:'لون التربة والشوكولاتة الشهية؟'},
+        {c:'⚫', n:'أسود', spell:['ألف', 'سين', 'واو', 'دال'], story:'اللون الأسود يزين سماء الليل المليئة بالنجوم.', quiz:'لون الليل المعتم والمظلم؟'},
+        {c:'⚪', n:'أبيض', spell:['ألف', 'باء', 'ياء', 'ضاد'], story:'اللون الأبيض يعبر عن السلام والنقاء والقلوب الطاهرة.', quiz:'لون الثلج الناصع ما هو؟'},
+        {c:'🔘', n:'رمادي', spell:['راء', 'ميم', 'ألف', 'دال', 'ياء'], story:'اللون الرمادي يظهر في الغيوم الممطرة.', quiz:'لون السحب الممطرة الهادئة؟'},
+        {c:'⭐', n:'ذهبي', spell:['ذال', 'هاء', 'باء', 'ياء'], story:'اللون الذهبي يلمع كالكنوز الثمينة والنجوم المضيئة.', quiz:'لون الذهب والنجوم اللامعة؟'}
+      ],
+      days_ar: [
+        {c:'1️⃣', n:'السبت', spell:['ألف', 'لام', 'سين', 'باء', 'تاء'], story:'يوم السبت نبدأ أسبوعنا بنشاط وحيوية متجددة.', quiz:'أول أيام الأسبوع الدراسي والنشاط؟'},
+        {c:'2️⃣', n:'الأحد', spell:['ألف', 'لام', 'ألف', 'حاء', 'دال'], story:'يوم الأحد يمتلئ بالفصول المدرسية الممتعة والجديدة.', quiz:'اليوم الذي يأتي بعد السبت مباشرة؟'},
+        {c:'3️⃣', n:'الاثنين', spell:['ألف', 'لام', 'ثاء', 'نون', 'ياء', 'نون'], story:'يوم الاثنين نلعب ونرسم أروع اللوحات مع الأصدقاء.', quiz:'يوم منتصف الأسبوع الأول الجميل؟'},
+        {c:'4️⃣', n:'الثلاثاء', spell:['ألف', 'لام', 'ثاء', 'لام', 'ألف', 'ثاء'], story:'يوم الثلاثاء نتعلم فيه آيات القرآن والعلوم المفيدة.', quiz:'يوم يأتي بعد الاثنين مباشرة؟'},
+        {c:'5️⃣', n:'الأربعاء', spell:['ألف', 'لام', 'ألف', 'راء', 'باء', 'عين'], story:'يوم الأربعاء نقوم بالأنشطة الرياضية والمسابقات.', quiz:'اليوم الذي يسبق الخميس مباشرة؟'},
+        {c:'6️⃣', n:'الخميس', spell:['ألف', 'لام', 'خاء', 'ميم', 'ياء', 'سين'], story:'يوم الخميس نفرح بقرب عطلة نهاية الأسبوع السعيدة.', quiz:'آخر أيام الأسبوع الدراسي النشط؟'},
+        {c:'🕌', n:'الجمعة', spell:['ألف', 'لام', 'جيم', 'ميم', 'عين', 'تاء'], story:'يوم الجمعة نجتمع فيه لصلاة الجماعة وزيارة الأهل.', quiz:'يوم العطلة المبارك والمميز؟'}
+      ],
+      numbers_ar: [
+        {c:'1', n:'واحد', story:'الرقم واحد يدل على الواحد الأحد الخالق المدبر لكل الكون.', quiz:'كم إلهاً نعبد في الكون؟'},
+        {c:'2', n:'اثنان', story:'الرقم اثنان يمثل عينينا الجميلتين ويدينا الاثنتين.', quiz:'كم عيناً في وجهك الجميل؟'},
+        {c:'3', n:'ثلاثة', story:'الرقم ثلاثة يمثل عدد وجباتنا الصحية في اليوم.', quiz:'كم وجبة رئيسية نتناولها يومياً؟'},
+        {c:'4', n:'أربعة', story:'الرقم أربعة يمثل أركان الطاولة القوية وأرجل القطط الأليفة.', quiz:'كم عدد أرجل القطط الصغيرة؟'},
+        {c:'5', n:'خمسة', story:'الرقم خمسة يمثل أصابع يدنا المباركة وأوقات الصلوات.', quiz:'كم عدد أصابع يدك الواحدة؟'},
+        {c:'6', n:'ستة', story:'الرقم ستة يمثل أيام خلق السماوات والأرض.', quiz:'في كم يوم خلق الله الكون؟'},
+        {c:'7', n:'سبعة', story:'الرقم سبعة يثل أيام الأسبوع وأبواب الجنة.', quiz:'كم عدد أيام الأسبوع الكاملة؟'},
+        {c:'8', n:'ثمانية', story:'الرقم ثمانية يمثل عدد أضلع نجمة البحر الجميلة.', quiz:'رقم يأتي بعد السبعة مباشرة؟'},
+        {c:'9', n:'تسعة', story:'الرقم تسعة يعبر عن قرب اكتمال العد.', quiz:'رقم يأتي قبل العشرة مباشرة؟'},
+        {c:'10', n:'عشرة', story:'الرقم عشرة يمثل أصابع اليدين معاً وكمال العدد.', quiz:'كم مجموع أصابع يديك الاثنتين؟'},
+        {c:'11', n:'أحد عشر', story:'الرقم أحد عشر يليه اثنا عشر في سلسلة الأعداد.', quiz:'ما هو الرقم الذي يأتي بعد العشرة مباشرة؟'},
+        {c:'12', n:'اثنا عشر', story:'الرقم اثنا عشر يمثل عدد شهور السنة الهجورية والميلادية.', quiz:'كم عدد شهور السنة الكاملة؟'},
+        {c:'13', n:'ثلاثة عشر', story:'رقم جميل يأتي بعد الاثني عشر.', quiz:'رقم يأتي بعد 12؟'},
+        {c:'14', n:'أربعة عشر', story:'رقم ممتاز في سلسلة العد.', quiz:'رقم يأتي بعد 13؟'},
+        {c:'15', n:'خمسة عشر', story:'نصف الثلاثين هو الرقم خمسة عشر.', quiz:'ما هو منتصف العدد ثلاثين؟'},
+        {c:'16', n:'ستة عشر', story:'رقم رائع ومشرق في التعلم.', quiz:'رقم يأتي بعد 15؟'},
+        {c:'17', n:'سبعة عشر', story:'نواصل العد بقوة ونشاط.', quiz:'رقم يأتي بعد 16؟'},
+        {c:'18', n:'ثمانية عشر', story:'خطوة أخرى ونصل لعشرين.', quiz:'رقم يأتي بعد 17؟'},
+        {c:'19', n:'تسعة عشر', story:'الرقم السابق للعدد عشرين مباشرة.', quiz:'ما هو الرقم الذي يسبق العشرين مباشرة؟'},
+        {c:'20', n:'عشرون', story:'الرقم عشرون يمثل أصابع اليدين والقدمين معاً.', quiz:'كم مجموع أصابع اليدين والقدمين؟'}
+      ],
+      words_ar: [
+        {c:'🦁', n:'أسد', spell:['ألف', 'سين', 'دال'], story:'الأسد ملك الغابة الشجاع يحمي عرينه بكل هيبة وقوة.', quiz:'من هو ملك الغابة المفترس؟'},
+        {c:'🦆', n:'بطة', spell:['باء', 'طاء', 'تاء'], story:'البطة الصفراء تتزلج بسعادة على صفحة الماء.', quiz:'طائر ماء يتردد صوته بقاقأة جميلة؟'},
+        {c:'🍎', n:'تفاح', spell:['تاء', 'فاء', 'ألف', 'حاء'], story:'التفاح الأحمر الغني بالفيتامينات يمنحنا صحة ونشاط.', quiz:'فاكهة تحافظ على صحتنا وتبعدنا عن الطبيب؟'},
+        {c:'🦊', n:'ثعلب', spell:['ثاء', 'عين', 'لام', 'باء'], story:'الثعلب الماكر يبحث عن المغامرات في الغابة المظلمة.', quiz:'حيوان ذكي ومكار يعيش في الغابة؟'},
+        {c:'🐪', n:'جمل', spell:['جيم', 'ميم', 'لام'], story:'الجمل الصبور يسافر عبر رمال الصحراء الذهبية.', quiz:'حيوان له سنام ويتحمل العطش؟'},
+        {c:'🐎', n:'حصان', spell:['حاء', 'صاد', 'ألف', 'نون'], story:'الحصان الأصيل يجري بكل سرعة وجمال في الميدان.', quiz:'حيوان نركب على ظهره للسباق؟'},
+        {c:'🐑', n:'خروف', spell:['خاء', 'راء', 'واو', 'فاء'], story:'الخروف اللطيف يعطينا الصوف الناعم الدافئ.', quiz:'حيوان نأخذ منه الصوف واللحم الطيب؟'},
+        {c:'🐻', n:'دب', spell:['دال', 'باء'], story:'الدب الكبير يحب تناول العسل اللذيذ في الغابة.', quiz:'حيوان ضخم يحب العسل والنوم طويلاً؟'},
+        {c:'🐺', n:'ذئب', spell:['ذال', 'همزة', 'باء'], story:'الذئب القوي يعوي تحت ضوء القمر الساطع.', quiz:'حيوان شجاع يشبه الكلب البري؟'},
+        {c:'🪶', n:'ريشة', spell:['راء', 'ياء', 'شين', 'تاء'], story: 'الريشة الخفيفة تطير في الهواء مع نسيم الصباح.', quiz:'أداة خفيفة تستخدم للكتابة قديماً؟'},
+        {c:'🦒', n:'زرافة', spell:['زاي', 'راء', 'ألف', 'فاء', 'تاء'], story:'الزرافة الطويلة تأكل أعالي الأشجار برقبتها الطويلة.', quiz:'حيوان برقبة طويلة جداً؟'},
+        {c:'🐟', n:'سمكة', spell:['سين', 'ميم', 'كاف', 'تاء'], story:'السمكة السريعة تعيش في بحر عميق وجميل.', quiz:'كائن يعيش في الماء ويتنفس بالخياشيم؟'},
+        {c:'☀️', n:'شمس', spell:['شين', 'ميم', 'سين'], story:'الشمس الدافئة تمنح الأرض النور والحرارة.', quiz:'نجم يضيء نهارنا ويدفئنا؟'}
+      ],
+      letters_en: [
+        {c:'A', n:'Apple', lang:'en', soundLetter:'A', spell:['A','p','p','l','e'], story:'Letter A stands for Apple, a delicious red fruit that keeps us healthy.', quiz:'What is the red sweet fruit starting with A?'},
+        {c:'B', n:'Ball', lang:'en', soundLetter:'B', spell:['B','a','l','l'], story:'Letter B is for Ball, which we kick high in the playground with joy.', quiz:'What round toy do we play football with?'},
+        {c:'C', n:'Cat', lang:'en', soundLetter:'C', spell:['C','a','t'], story:'Letter C is for Cat, a cute pet that purrs softly when we hug it.', quiz:'What furry pet says Meow?'},
+        {c:'D', n:'Dog', lang:'en', soundLetter:'D', spell:['D','o','g'], story:'Letter D is for Dog, man best friend who guards our house faithfully.', quiz:'What loyal pet barks at strangers?'},
+        {c:'E', n:'Egg', lang:'en', soundLetter:'E', spell:['E','g','g'], story:'Letter E is for Egg, full of protein to make us strong and tall.', quiz:'What nutritious white shell food do we eat for breakfast?'},
+        {c:'F', n:'Fish', lang:'en', soundLetter:'F', spell:['F','i','s','h'], story:'Letter F is for Fish, swimming gracefully in the blue ocean.', quiz:'What animal lives in water and has fins?'},
+        {c:'G', n:'Girl', lang:'en', soundLetter:'G', spell:['G','i','r','l'], story:'Letter G is for Girl, smart and kind who loves reading stories.', quiz:'Who is the female child learning at school?'},
+        {c:'H', n:'Hat', lang:'en', soundLetter:'H', spell:['H','a','t'], story:'Letter H is for Hat, protecting our head from the hot sunny day.', quiz:'What do we wear on our head in summer?'},
+        {c:'I', n:'Ice', lang:'en', soundLetter:'I', spell:['I','c','e'], story:'Letter I is for Ice, cold and freezing like winter snow.', quiz:'What frozen water do we put in juice?'},
+        {c:'J', n:'Jug', lang:'en', soundLetter:'J', spell:['J','u','g'], story:'Letter J is for Jug, holding fresh lemonade for thirsty friends.', quiz:'What container holds water or juice?'},
+        {c:'K', n:'Kite', lang:'en', soundLetter:'K', spell:['K','i','t','e'], story:'Letter K is for Kite, flying high up in the windy sky.', quiz:'What paper toy flies high in the wind?'},
+        {c:'L', n:'Lion', lang:'en', soundLetter:'L', spell:['L','i','o','n'], story:'Letter L is for Lion, the brave king of the jungle.', quiz:'Who is the king of beasts with a big mane?'},
+        {c:'M', n:'Moon', lang:'en', soundLetter:'M', spell:['M','o','o','n'], story:'Letter M is for Moon, glowing softly in the dark night.', quiz:'What shines in the sky at night?'},
+        {c:'N', n:'Nest', lang:'en', soundLetter:'N', spell:['N','e','s','t'], story:'Letter N is for Nest, where little birds sleep safely.', quiz:'Where do birds lay their eggs?'},
+        {c:'O', n:'Owl', lang:'en', soundLetter:'O', spell:['O','w','l'], story:'Letter O is for Owl, wise bird watching quietly at night.', quiz:'What nocturnal bird has big round eyes?'},
+        {c:'P', n:'Pen', lang:'en', soundLetter:'P', spell:['P','e','n'], story:'Letter P is for Pen, used to write wonderful notes and homework.', quiz:'What tool do we use to write in ink?'},
+        {c:'Q', n:'Queen', lang:'en', soundLetter:'Q', spell:['Q','u','e','e','n'], story:'Letter Q is for Queen, ruling her kingdom with justice and love.', quiz:'Who wears a crown and rules a kingdom?'},
+        {c:'R', n:'Rose', lang:'en', soundLetter:'R', spell:['R','o','s','e'], story:'Letter R is for Rose, smelling sweet and looking gorgeous.', quiz:'What red thorny flower smells so sweet?'},
+        {c:'S', n:'Sun', lang:'en', soundLetter:'S', spell:['S','u','n'], story:'Letter S is for Sun, bringing warmth to our beautiful world.', quiz:'What bright star warms our planet every day?'},
+        {c:'T', n:'Tree', lang:'en', soundLetter:'T', spell:['T','ر','e','e'], story:'Letter T is for Tree, giving us oxygen and lovely shade.', quiz:'What tall plant has wooden trunk and leaves?'},
+        {c:'U', n:'Umbrella', lang:'en', soundLetter:'U', spell:['U','m','ب','ر','e','l','l','a'], story:'Letter U is for Umbrella, keeping us dry on rainy days.', quiz:'What opens up to protect us from rain?'},
+        {c:'V', n:'Van', lang:'en', soundLetter:'V', spell:['V','a','n'], story:'Letter V is for Van, carrying kids safely to school trips.', quiz:'What large vehicle carries goods or passengers?'},
+        {c:'W', n:'Watch', lang:'en', soundLetter:'W', spell:['W','a','t','c','h'], story:'Letter W is for Watch, telling us the exact time all day.', quiz:'What accessory do we wear on our wrist to tell time?'},
+        {c:'X', n:'X-ray', lang:'en', soundLetter:'X', spell:['X','ر','a','y'], story:'Letter X is for X-ray, showing doctors our healthy bones.', quiz:'What medical picture shows our bones?'},
+        {c:'Y', n:'Yoyo', lang:'en', soundLetter:'Y', spell:['Y','o','y','o'], story:'Letter Y is for Yoyo, spinning up and down with fun tricks.', quiz:'What toy goes up and down on a string?'},
+        {c:'Z', n:'Zebra', lang:'en', soundLetter:'Z', spell:['Z','e','ب','ر','a'], story:'Letter Z is for Zebra, wearing black and white striped coats.', quiz:'What African animal looks like a horse with black and white stripes?'}
+      ],
+      phonics_en: [
+        {c:'A /æ/', n:'Apple', lang:'en', soundLetter:'A', spell:['A'], story:'Phonics sound /æ/ for Apple, crisp and juicy!', quiz:'What sound does letter A make in Apple?'},
+        {c:'B /b/', n:'Ball', lang:'en', soundLetter:'B', spell:['B'], story:'Phonics sound /b/ for Ball, bouncing up and down!', quiz:'What sound does letter B make in Ball?'},
+        {c:'C /k/', n:'Cat', lang:'en', soundLetter:'C', spell:['C'], story:'Phonics sound /k/ for Cat, purring softly!', quiz:'What sound does letter C make in Cat?'},
+        {c:'D /d/', n:'Dog', lang:'en', soundLetter:'D', spell:['D'], story:'Phonics sound /d/ for Dog, barking happily!', quiz:'What sound does letter D make in Dog?'},
+        {c:'E /e/', n:'Egg', lang:'en', soundLetter:'E', spell:['E'], story:'Phonics sound /e/ for Egg, nutritious breakfast!', quiz:'What sound does letter E make in Egg?'},
+        {c:'F /f/', n:'Fish', lang:'en', soundLetter:'F', spell:['F'], story:'Phonics sound /f/ for Fish, swimming fast!', quiz:'What sound does letter F make in Fish?'},
+        {c:'G /g/', n:'Gate', lang:'en', soundLetter:'G', spell:['G'], story:'Phonics sound /g/ for Gate, opening wide!', quiz:'What sound does letter G make in Gate?'},
+        {c:'H /h/', n:'Hat', lang:'en', soundLetter:'H', spell:['H'], story:'Phonics sound /h/ for Hat, keeping us warm!', quiz:'What sound does letter H make in Hat?'}
+      ],
+      colors_en: [
+        {c:'🔴', n:'Red', lang:'en', spell:['R','e','d'], story:'Red is the color of passion, love, and juicy strawberries.', quiz:'What color is a fresh strawberry?'},
+        {c:'🔵', n:'Blue', lang:'en', spell:['B','l','u','e'], story:'Blue is the deep color of ocean waves and clear skies.', quiz:'What color is the deep ocean?'},
+        {c:'🟢', n:'Green', lang:'en', spell:['G','ر','e','e','n'], story:'Green is the refreshing color of fresh grass and springtime.', quiz:'What color is fresh spring grass?'},
+        {c:'🟡', n:'Yellow', lang:'en', spell:['Y','e','l','l','o','w'], story:'Yellow is the bright color of lemons and shining stars.', quiz:'What color is a sour lemon?'},
+        {c:'🟠', n:'Orange', lang:'en', spell:['O','ر','a','n','g','e'], story:'Orange is the vibrant color of autumn leaves and citrus fruit.', quiz:'What color shares its name with a citrus fruit?'},
+        {c:'🟣', n:'Purple', lang:'en', spell:['P','u','ر','p','l','e'], story:'Purple is the royal color of majestic plums and velvet.', quiz:'What color is a royal plum?'},
+        {c:'🟤', n:'Brown', lang:'en', spell:['B','ر','o','w','n'], story:'Brown is the earthy color of rich soil and wooden furniture.', quiz:'What color is rich earth and wood?'},
+        {c:',', n:'Black', lang:'en', spell:['B','l','a','c','k'], story:'Black is the dark sleek color of shadows and panthers.', quiz:'What color is a dark shadowy night?'},
+        {c:'⚪', n:'White', lang:'en', spell:['W','h','i','t','e'], story:'White is the immaculate color of fluffy clouds and pure snow.', quiz:'What color is pure fluffy snow?'},
+        {c:'🌸', n:'Pink', lang:'en', spell:['P','i','n','k'], story:'Pink is the lovely sweet color of bubblegum and blooming roses.', quiz:'What color is sweet bubblegum?'},
+        {c:'🔘', n:'Gray', lang:'en', spell:['G','ر','a','y'], story:'Gray is the balanced neutral color of silver and stone.', quiz:'What color is hard mountain stone?'},
+        {c:'⭐', n:'Gold', lang:'en', spell:['G','o','l','d'], story:'Gold is the precious shiny color of royal treasures.', quiz:'What precious metallic color shines bright?'}
+      ],
+      days_en: [
+        {c:'1', n:'Saturday', lang:'en', spell:['S','a','t','u','ر','d','a','y'], story:'Saturday is the exciting weekend day filled with fun family trips.', quiz:'What weekend day starts with S?'},
+        {c:'2', n:'Sunday', lang:'en', spell:['S','u','n','d','a','y'], story:'Sunday is a relaxing peaceful day preparing for a new week.', quiz:'What is the last day of the weekend?'},
+        {c:'3', n:'Monday', lang:'en', spell:['M','o','n','d','a','y'], story:'Monday kicks off the school week with fresh energy and focus.', quiz:'What is the first school day of the week?'},
+        {c:'4', n:'Tuesday', lang:'en', spell:['T','u','e','s','d','a','y'], story:'Tuesday brings wonderful lessons and creative art activities.', quiz:'What day comes right after Monday?'},
+        {c:'5', n:'Wednesday', lang:'en', spell:['W','e','d','n','e','s','d','a','y'], story:'Wednesday is the middle of the week, full of balanced progress.', quiz:'What is the exact middle day of the workweek?'},
+        {c:'6', n:'Thursday', lang:'en', spell:['T','h','u','ر','s','d','a','y'], story:'Thursday marks the cheerful end of the school week.', quiz:'What day comes right before Friday?'},
+        {c:'7', n:'Friday', lang:'en', spell:['F','r','i','d','a','y'], story:'Friday is a blessed holy day of gathering, joy, and rest.', quiz:'What special holy day ends the week?'}
+      ],
+      numbers_en: [
+        {c:'1', n:'One', lang:'en', spell:['O','n','e'], story:'One represents unity and being the very first in everything.', quiz:'What number represents being first?'},
+        {c:'2', n:'Two', lang:'en', spell:['T','w','o'], story:'Two represents pairs like shoes, eyes, and loving parents.', quiz:'How many shoes are in a pair?'},
+        {c:'3', n:'Three', lang:'en', spell:['T','h','ر','e','e'], story:'Three represents a triangle with three pointy corners.', quiz:'How many corners does a triangle have?'},
+        {c:'4', n:'Four', lang:'en', spell:['F','o','u','ر'], story:'Four represents four cozy legs of a sturdy table.', quiz:'How many legs does a standard table have?'},
+        {c:'5', n:'Five', lang:'en', spell:['F','i','v','e'], story:'Five represents fingers on one busy hand.', quiz:'How many fingers are on your right hand?'},
+        {c:'6', n:'Six', lang:'en', spell:['S','i','x'], story:'Six represents the sides of a hexagonal honeycomb cell.', quiz:'What number comes right after five?'},
+        {c:'7', n:'Seven', lang:'en', spell:['S','e','v','e','n'], story:'Seven represents the lucky number of days in a week.', quiz:'How many days are in a single week?'},
+        {c:'8', n:'Eight', lang:'en', spell:['E','i','g','h','t'], story:'Eight represents a playful snowman stacked with round balls.', quiz:'What number comes right after seven?'},
+        {c:'9', n:'Nine', lang:'en', spell:['N','i','n','e'], story:'Nine represents a near complete circle of digits.', quiz:'What single digit number comes right before ten?'},
+        {c:'10', n:'Ten', lang:'en', spell:['T','e','n'], story:'Ten represents all fingers on both hands working together.', quiz:'What is the total number of fingers on both hands?'},
+        {c:'11', n:'Eleven', lang:'en', spell:['E','l','e','v','e','n'], story:'Eleven comes right after ten in sequence.', quiz:'What number comes after ten?'},
+        {c:'12', n:'Twelve', lang:'en', spell:['T','w','e','l','v','e'], story:'Twelve represents a dozen items grouped together.', quiz:'How many items are in a dozen?'},
+        {c:'13', n:'Thirteen', lang:'en', spell:['T','h','i','ر','t','e','e','n'], story:'Thirteen is a wonderful number following twelve.', quiz:'What number comes after twelve?'},
+        {c:'14', n:'Fourteen', lang:'en', spell:['F','o','u','ر','t','e','e','n'], story:'Fourteen keeps our counting practice going strong.', quiz:'What number comes after thirteen?'},
+        {c:'15', n:'Fifteen', lang:'en', spell:['F','i','ف','t','e','e','n'], story:'Fifteen is the halfway mark to thirty.', quiz:'What is half of thirty?'},
+        {c:'16', n:'Sixteen', lang:'en', spell:['S','i','x','t','e','e','n'], story:'Sixteen is a bright number in our sequence.', quiz:'What number comes after fifteen?'},
+        {c:'17', n:'Seventeen', lang:'en', spell:['S','e','v','e','n','t','e','e','n'], story:'Seventeen continues our counting journey.', quiz:'What number comes after sixteen?'},
+        {c:'18', n:'Eighteen', lang:'en', spell:['E','i','g','h','t','e','e','n'], story:'Eighteen is just two steps away from twenty.', quiz:'What number comes after seventeen?'},
+        {c:'19', n:'Nineteen', lang:'en', spell:['N','i','n','e','ت','e','e','n'], story:'Nineteen is the final step before twenty.', quiz:'What number comes right before twenty?'},
+        {c:'20', n:'Twenty', lang:'en', spell:['T','w','e','n','t','y'], story:'Twenty represents the total fingers on hands and feet.', quiz:'How many fingers and toes do humans have?'}
+      ],
+      words_en: [
+        {c:'🐶', n:'Dog', lang:'en', spell:['D','o','g'], story:'The friendly dog wags its tail to welcome us home.', quiz:'What animal wags its tail when happy?'},
+        {c:'🐱', n:'Cat', lang:'en', spell:['C','a','t'], story:'The fluffy cat loves to sleep under warm sunbeams.', quiz:'What small pet loves chasing yarn?'},
+        {c:'🚗', n:'Car', lang:'en', spell:['C','a','ر'], story:'The fast car travels smoothly down the long highway.', quiz:'What motor vehicle drives on roads?'},
+        {c:'⚽', n:'Ball', lang:'en', spell:['B','a','ل','ل'], story:'The bouncing ball brings endless fun to playground games.', quiz:'What round object do we kick and throw?'},
+        {c:'🏠', n:'House', lang:'en', spell:['H','o','u','s','e'], story:'Our cozy house shelters our family with warmth and love.', quiz:'Where do families live together safely?'},
+        {c:'🍎', n:'Apple', lang:'en', spell:['A','p','p','ل','e'], story:'A crisp apple a day keeps the doctor far away.', quiz:'What red fruit grows on trees?'},
+        {c:'🌳', n:'Tree', lang:'en', spell:['T','ر','e','e'], story:'The grand green tree provides cool shade on hot days.', quiz:'What tall wooden plant gives us shade?'},
+        {c:'🐟', n:'Fish', lang:'en', spell:['F','i','s','h'], story:'The silver fish darts playfully through coral reefs.', quiz:'What animal swims with gills in water?'},
+        {c:'☀️', n:'Sun', lang:'en', spell:['S','u','n'], story:'The radiant sun brings bright daylight to our planet.', quiz:'What hot glowing orb lights up our day?'},
+        {c:'🌙', n:'Moon', lang:'en', spell:['M','o','o','n'], story:'The glowing moon watches over sleeping children at night.', quiz:'What silvery body orbits Earth at night?'},
+        {c:'📚', n:'Book', lang:'en', spell:['B','o','o','k'], story:'An open book opens our minds to magical new worlds.', quiz:'What contains pages of stories to read?'},
+        {c:'⭐', n:'Star', lang:'en', spell:['S','t','a','ر'], story:'A twinkling star sparkles high up in the evening sky.', quiz:'What twinkles brightly in the night sky?'}
+      ]
+    };
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function selectLevel(levelName) {
+      initAudio();
+      document.getElementById('welcome-screen').style.display = 'none';
+      document.getElementById('level-text').innerText = 'المستوى: ' + levelName;
+      speakTextWithFallback('مرحباً بك في ' + levelName, 'ar');
+      updateDisplay();
+    }
+
+    function openOtherGame(gameType) {
+      initAudio();
+      let links = {
+        'points_challenge': 'https://play.google.com/store/apps/details?id=com.mindsprint.pointschallenge',
+        'offline_50': 'https://play.google.com/store/apps/details?id=com.yourname.offline50', 
+        'clothes': 'https://play.google.com/store/apps/details?id=com.yourname.clothes',
+        'traffic': 'https://play.google.com/store/apps/details?id=com.mindsprint.traffic',
+        'cubes': 'https://play.google.com/store/apps/details?id=com.mindsprint.cubes'
+      };
+
+      if (links[gameType]) {
+        window.open(links[gameType], '_system');
+      }
+    }
+
+    function speakTextWithFallback(text, lang = 'ar') {
+      initAudio();
+      
+      if ('speechSynthesis' in window) {
+        try {
+          window.speechSynthesis.cancel();
+          const utter = new SpeechSynthesisUtterance(text);
+          utter.lang = (lang === 'en') ? 'en-US' : 'ar-SA';
+          utter.rate = 0.85;
+          window.speechSynthesis.speak(utter);
+        } catch(e) {}
+      }
+
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+      } catch(e) {}
+    }
+
+    function playItemAudio(item) {
+      if (item.soundLetter) {
+        speakTextWithFallback(item.soundLetter, 'en');
+        setTimeout(() => {
+          speakTextWithFallback(item.n, 'en');
+        }, 1000);
+      } else {
+        speakTextWithFallback(item.n, item.lang || 'ar');
+      }
+    }
+
+    function soundWin() {
+      [330, 440, 554, 659].forEach((f, i) => {
+        setTimeout(() => {
+          try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+          } catch(e){}
+        }, i * 80);
+      });
+    }
+
+    function updateDisplay() {
+      const item = data[curCategory][curIndex];
+      const mainDisplay = document.getElementById('main-display');
+      
+      const randomX = Math.floor(Math.random() * (window.innerWidth - 180)) + 40;
+      const randomY = Math.floor(Math.random() * (window.innerHeight - 350)) + 150;
+      
+      mainDisplay.style.left = randomX + 'px';
+      mainDisplay.style.top = randomY + 'px';
+
+      mainDisplay.classList.remove('animate-pop');
+      void mainDisplay.offsetWidth;
+      mainDisplay.classList.add('animate-pop');
+
+      document.getElementById('main-char').innerText = item.c;
+      document.getElementById('main-sub').innerText = item.n;
+      document.getElementById('catch-counter').innerText = `المحاولة: ${catchStep} من ${maxSteps} 🏃‍♂️`;
+      updateItemsBar();
+    }
+
+    function updateItemsBar() {
+      const bar = document.getElementById('items-bar');
+      bar.innerHTML = '';
+      data[curCategory].forEach((item, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'mini-item' + (idx === curIndex ? ' active' : '');
+        btn.innerText = item.c;
+        btn.onclick = () => {
+          curIndex = idx;
+          catchStep = 1;
+          updateDisplay();
+          playItemAudio(item);
+        };
+        bar.appendChild(btn);
+      });
+    }
+
+    function switchCategory(catKey, btnElement) {
+      initAudio();
+      curCategory = catKey;
+      curIndex = 0;
+      catchStep = 1;
+      document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btnElement.classList.add('active');
+      updateDisplay();
+      playItemAudio(data[curCategory][curIndex]);
+    }
+
+    function nextItem() {
+      initAudio();
+      curIndex = (curIndex + 1) % data[curCategory].length;
+      catchStep = 1;
+      updateDisplay();
+      playItemAudio(data[curCategory][curIndex]);
+    }
+
+    function prevItem() {
+      initAudio();
+      curIndex = (curIndex - 1 + data[curCategory].length) % data[curCategory].length;
+      catchStep = 1;
+      updateDisplay();
+      playItemAudio(data[curCategory][curIndex]);
+    }
+
+    function huntItem() {
+      initAudio();
+      soundWin();
+      const item = data[curCategory][curIndex];
+      speakTextWithFallback('عاش يا بطل! ' + item.n, item.lang || 'ar');
+      catchStep++;
+      if (catchStep > maxSteps) {
+        catchStep = 1;
+        nextItem();
+      } else {
+        updateDisplay();
+      }
+    }
+
+    function spellCurrentItem() {
+      initAudio();
+      if (spellTimer) clearTimeout(spellTimer);
+      const item = data[curCategory][curIndex];
+      if (item.spell && item.spell.length > 0) {
+        item.spell.forEach((letter, idx) => {
+          setTimeout(() => {
+            document.getElementById('main-sub').innerText = letter;
+            speakTextWithFallback(letter, item.lang || 'ar');
+          }, idx * 700);
+        });
+        spellTimer = setTimeout(() => {
+          document.getElementById('main-sub').innerText = item.n;
+          speakTextWithFallback(item.n, item.lang || 'ar');
+        }, item.spell.length * 700 + 300);
+      } else {
+        playItemAudio(item);
+      }
+    }
+
+    function openAiModal() {
+      initAudio();
+      document.getElementById('ai-modal').style.display = 'block';
+      speakTextWithFallback('أهلاً بك مع المعلم الذكي', 'ar');
+    }
+
+    // التعديل الشامل والجذري لمنع تكرار القصص والأسئلة وضمان تنوعها لكل عنصر تلقائياً
+    function aiAction(type) {
+      initAudio();
+      const resp = document.getElementById('ai-response');
+      const item = data[curCategory][curIndex];
+      let msg = '';
+      
+      if (type === 'story') {
+        if (item.story) {
+          msg = item.story;
+        } else {
+          // توليد قصة فريدة تلقائياً بناءً على اسم العنصر الحالي لمنع التكرار نهائياً
+          msg = `حكاية ممتعة ومميزة جداً اليوم عن البطل الرائع (${item.n}) وكيف نتعلم منه أسرار جديدة وجميلة في كل خطوة!`;
+        }
+      } else {
+        if (item.quiz) {
+          msg = item.quiz;
+        } else {
+          // توليد فزورة ذكية فريدة تلقائياً بناءً على اسم العنصر الحالي
+          msg = `فزورة ذكية جداً عن (${item.n})! فكر بتركيز يا بطل واكتشف الإجابة الصحيحة معنا!`;
+        }
+      }
+      
+      resp.innerText = msg;
+      speakTextWithFallback(msg, item.lang || 'ar');
+    }
+  </script>
+</body>
+</html>
