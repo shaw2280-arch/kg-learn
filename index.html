@@ -139,6 +139,23 @@
       padding: 10px; font-size: 13px; color: #333; margin: 8px 0; line-height: 1.4;
     }
     .ai-btn { background: #be4bdb; color: white; border: none; padding: 7px 12px; border-radius: 12px; font-size: 12px; font-weight: bold; cursor: pointer; margin: 2px; }
+
+    #memory-modal {
+      display: none; position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); width: 92%; max-width: 380px;
+      background: linear-gradient(135deg, #fff9db 0%, #ffffff 100%);
+      border-radius: 25px; padding: 20px;
+      box-shadow: 0 15px 45px rgba(0,0,0,0.35); border: 4px solid #20c997; z-index: 2000; text-align: center;
+    }
+    .memory-options {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;
+    }
+    .memory-option-btn {
+      background: #4dabf7; color: white; border: none; padding: 12px;
+      border-radius: 15px; font-size: 20px; font-weight: bold; cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: transform 0.2s;
+    }
+    .memory-option-btn:active { transform: scale(0.95); }
   </style>
 </head>
 <body>
@@ -184,7 +201,7 @@
   <div id="items-bar"></div>
 
   <div id="stage-title">🎯 اصطد العنصر قبل أن يهرب! (ناطق حقيقي)</div>
-  <div id="catch-counter">المحاولة: 1 من 3 🏃‍♂️</div>
+  <div id="catch-counter">المحاولة: 1 من 4 🏃‍♂️</div>
 
   <div id="main-display" onclick="huntItem()">
     <div id="main-char">🔴</div>
@@ -210,13 +227,20 @@
     </div>
   </div>
 
+  <div id="memory-modal">
+    <h3 style="color: #099268; margin-bottom: 5px;">🧠 اختبار الذاكرة الذكي</h3>
+    <p id="memory-question-text" style="font-size: 15px; color: #333; margin-bottom: 10px; font-weight: bold;">أين هو الحرف الصحيح؟</p>
+    <div id="memory-options-container" class="memory-options"></div>
+    <button onclick="closeMemoryModal()" style="margin-top: 15px; background: #ff6b6b; color: white; border: none; padding: 6px 16px; border-radius: 12px; font-size: 13px; font-weight: bold; cursor: pointer;">إغلاق ✕</button>
+  </div>
+
   <script>
     let audioCtx = null;
     let spellTimer = null;
     let curCategory = 'letters_ar';
     let curIndex = 0;
     let catchStep = 1;
-    const maxSteps = 3;
+    const maxSteps = 4;
 
     const data = {
       letters_ar: [
@@ -417,7 +441,7 @@
         {c:'14', n:'Fourteen', lang:'en', spell:['F','o','u','ر','t','e','e','n'], story:'Fourteen keeps our counting practice going strong.', quiz:'What number comes after thirteen?'},
         {c:'15', n:'Fifteen', lang:'en', spell:['F','i','ف','t','e','e','n'], story:'Fifteen is the halfway mark to thirty.', quiz:'What is half of thirty?'},
         {c:'16', n:'Sixteen', lang:'en', spell:['S','i','x','t','e','e','n'], story:'Sixteen is a bright number in our sequence.', quiz:'What number comes after fifteen?'},
-        {c:'17', n:'Seventeen', lang:'en', spell:['S','e','v','e','n','t','e','e','n'], story:'Seventeen continues our counting journey.', quiz:'What number comes after sixteen?'},
+        {c:'17', n:'Seventeen', lang:'en', spell:['S','e','v','e','n','ت','e','e','n'], story:'Seventeen continues our counting journey.', quiz:'What number comes after sixteen?'},
         {c:'18', n:'Eighteen', lang:'en', spell:['E','i','g','h','t','e','e','n'], story:'Eighteen is just two steps away from twenty.', quiz:'What number comes after seventeen?'},
         {c:'19', n:'Nineteen', lang:'en', spell:['N','i','n','e','ت','e','e','n'], story:'Nineteen is the final step before twenty.', quiz:'What number comes right before twenty?'},
         {c:'20', n:'Twenty', lang:'en', spell:['T','w','e','n','t','y'], story:'Twenty represents the total fingers on hands and feet.', quiz:'How many fingers and toes do humans have?'}
@@ -588,16 +612,68 @@
       playItemAudio(data[curCategory][curIndex]);
     }
 
+    function showMemoryQuiz() {
+      const currentList = data[curCategory];
+      if (currentList.length < 3) return;
+      
+      const correctItem = currentList[curIndex];
+      let options = [correctItem];
+      while (options.length < 4) {
+        let randItem = currentList[Math.floor(Math.random() * currentList.length)];
+        if (!options.includes(randItem)) {
+          options.push(randItem);
+        }
+      }
+      options.sort(() => Math.random() - 0.5);
+
+      document.getElementById('memory-question-text').innerText = `أين هو الحرف الصحيح: (${correctItem.n})؟`;
+      
+      const container = document.getElementById('memory-options-container');
+      container.innerHTML = '';
+      
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'memory-option-btn';
+        btn.innerText = opt.c;
+        btn.onclick = () => {
+          if (opt.c === correctItem.c) {
+            soundWin();
+            speakTextWithFallback('إجابة صحيحة يا بطل!', opt.lang || 'ar');
+            closeMemoryModal();
+            nextItem();
+          } else {
+            speakTextWithFallback('حاول مرة أخرى يا بطل', opt.lang || 'ar');
+            btn.style.background = '#ff6b6b';
+            setTimeout(() => { btn.style.background = '#4dabf7'; }, 600);
+          }
+        };
+        container.appendChild(btn);
+      });
+
+      document.getElementById('memory-modal').style.display = 'block';
+      speakTextWithFallback('اختبر ذاكرتك واعرف الحرف الصحيح', 'ar');
+    }
+
+    function closeMemoryModal() {
+      document.getElementById('memory-modal').style.display = 'none';
+      nextItem();
+    }
+
     function huntItem() {
       initAudio();
-      soundWin();
       const item = data[curCategory][curIndex];
-      speakTextWithFallback('عاش يا بطل! ' + item.n, item.lang || 'ar');
       catchStep++;
+
       if (catchStep > maxSteps) {
+        soundWin();
         catchStep = 1;
-        nextItem();
+        // بعد تكرار الضغط ونطق الحرف عدة مرات، يظهر مربع الاختبار
+        setTimeout(() => {
+          showMemoryQuiz();
+        }, 500);
       } else {
+        // في كل ضغطة ينطق اسم الحرف مباشرة بدون أي كلمات إضافية
+        playItemAudio(item);
         updateDisplay();
       }
     }
@@ -628,7 +704,6 @@
       speakTextWithFallback('أهلاً بك مع المعلم الذكي', 'ar');
     }
 
-    // التعديل الشامل والجذري لمنع تكرار القصص والأسئلة وضمان تنوعها لكل عنصر تلقائياً
     function aiAction(type) {
       initAudio();
       const resp = document.getElementById('ai-response');
@@ -636,19 +711,9 @@
       let msg = '';
       
       if (type === 'story') {
-        if (item.story) {
-          msg = item.story;
-        } else {
-          // توليد قصة فريدة تلقائياً بناءً على اسم العنصر الحالي لمنع التكرار نهائياً
-          msg = `حكاية ممتعة ومميزة جداً اليوم عن البطل الرائع (${item.n}) وكيف نتعلم منه أسرار جديدة وجميلة في كل خطوة!`;
-        }
+        msg = item.story || `حكاية ممتعة ومميزة جداً اليوم عن البطل الرائع (${item.n})!`;
       } else {
-        if (item.quiz) {
-          msg = item.quiz;
-        } else {
-          // توليد فزورة ذكية فريدة تلقائياً بناءً على اسم العنصر الحالي
-          msg = `فزورة ذكية جداً عن (${item.n})! فكر بتركيز يا بطل واكتشف الإجابة الصحيحة معنا!`;
-        }
+        msg = item.quiz || `فزورة ذكية جداً عن (${item.n})! فكر بتركيز يا بطل!`;
       }
       
       resp.innerText = msg;
